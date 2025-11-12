@@ -1,0 +1,69 @@
+// api/analyze.js  (Node/Vercel Serverless Function)
+export const config = { runtime: "nodejs" };
+
+export default async function handler(req, res) {
+  try {
+    if (req.method !== "POST") {
+      return res.status(405).json({ error: "Method not allowed" });
+    }
+
+    const { dataUrl, mimeType, fileName } = await req.json?.() || req.body;
+    if (!dataUrl || !mimeType) {
+      return res.status(400).json({ error: "Missing image" });
+    }
+
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) return res.status(500).json({ error: "OPENAI_API_KEY missing" });
+
+    const prompt = `
+Du bist ein Detektor für KI-generierte Bilder/Videos. 
+Analysiere das Bild und gib eine EINZIGE Zahl von 0 bis 100 an: 
+- 0 = sehr wahrscheinlich menschlich aufgenommen
+- 100 = sehr wahrscheinlich KI-generiert.
+Gib außerdem 2 kurze Begründungen.
+Antworte als JSON: {"score": <Zahl>, "reasons": ["...","..."]}.
+`;
+
+    const body = {
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: "Du bewertest KI-Anteil in Bildern knapp und vorsichtig." },
+        {
+          role: "user",
+          content: [
+            { type: "text", text: prompt },
+            { type: "input_image", image_url: dataUrl },
+          ],
+        },
+      ],
+      temperature: 0.2,
+    };
+
+    const r = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    const out = await r.json();
+    const text = out?.choices?.[0]?.message?.content ?? "{}";
+
+    let result = { score: 50, reasons: ["Unsicher", "Keine klare Antwort"] };
+    try {
+      result = JSON.parse(text);
+    } catch (e) {}
+
+    return res.status(200).json({
+      score: Math.max(0, Math.min(100, Math.round(result.score))),
+      reasons: result.reasons?.slice(0, 2) || [],
+      fileName,
+      mimeType,
+    });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ error: "Server error" });
+  }
+}
