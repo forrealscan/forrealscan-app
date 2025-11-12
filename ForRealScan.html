@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ForRealScan - Scan it. Know it.</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f7f7f7;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background: #4CAF50;
+            color: white;
+            padding: 20px;
+        }
+        h1 {
+            margin: 0;
+        }
+        main {
+            margin: 40px auto;
+            max-width: 500px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        input[type="file"] {
+            margin: 20px 0;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result {
+            margin-top: 30px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        footer {
+            margin-top: 50px;
+            font-size: 12px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>ForRealScan</h1>
+        <p>Scan it. Know it.</p>
+    </header>
+
+    <main>
+        <p>Wähle ein Bild oder Video, um den KI-Anteil zu prüfen:</p>
+        <input type="file" id="fileInput" accept="image/*,video/*">
+        <br>
+        <button onclick="scanFile()">Scan starten</button>
+        <div id="result">Ergebnis erscheint hier...</div>
+    </main>
+
+    <footer>
+        <p>Alle Dateien werden nur für die Analyse genutzt und nicht gespeichert. Beta-Test Version.</p>
+    </footer>
+
+    <script>
+        function scanFile() {
+            const fileInput = document.getElementById('fileInput');
+            const resultDiv = document.getElementById('result');
+
+            if (fileInput.files.length === 0) {
+                alert("Bitte wähle zuerst eine Datei aus!");
+                return;
+            }
+
+            // Platzhalter: Simulierter KI-Prozentwert
+            const simulatedPercent = Math.floor(Math.random() * 101); // 0-100%
+            resultDiv.innerText = `Geschätzter KI-Anteil: ${simulatedPercent}%`;
+
+            // Hier später: Upload der Datei an Backend + ChatGPT API
+        }
+    </script>
+</body>
+</html>
