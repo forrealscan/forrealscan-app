@@ -6,7 +6,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { dataUrl, mimeType, fileName } = req.body || {};
+  const { dataUrl, mimeType } = req.body || {};
   if (!dataUrl || !mimeType) {
     return res.status(400).json({ error: "Missing image" });
   }
@@ -17,13 +17,18 @@ export default async function handler(req, res) {
   }
 
   const prompt = `
-  Du bist ein KI-Detektor. Analysiere das Bild und gib eine JSON-Antwort:
-  {
-    "score": Zahl von 0 bis 100, // 0 = menschlich, 100 = KI-generiert
-    "reasons": ["kurze Begründung 1", "kurze Begründung 2"]
-  }
-  Sei vorsichtig bei Schätzungen und antworte NUR im JSON-Format.
-  `;
+Du bist ein KI-Detektor. Analysiere das bereitgestellte Bild.
+Bewerte, ob es wahrscheinlich von einer KI generiert wurde.
+Gib ausschließlich eine gültige JSON-Antwort aus, ohne zusätzlichen Text, exakt in diesem Format:
+
+{
+  "score": 0-100, 
+  "reasons": ["kurze Begründung 1", "kurze Begründung 2"]
+}
+
+- 0 = sehr menschlich
+- 100 = sehr wahrscheinlich KI-generiert
+`;
 
   try {
     const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -35,7 +40,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: "gpt-4o-mini",
         messages: [
-          { role: "system", content: "Du bewertest KI-Anteile in Bildern präzise." },
+          { role: "system", content: "Du bist ein strenger JSON-Rückgabe-Detektor für KI-generierte Bilder." },
           {
             role: "user",
             content: [
@@ -45,22 +50,31 @@ export default async function handler(req, res) {
           },
         ],
         temperature: 0.2,
+        max_tokens: 500,
       }),
     });
 
     const data = await openaiRes.json();
 
     const text = data?.choices?.[0]?.message?.content || "";
-    const match = text.match(/\{[\s\S]*\}/);
-    if (!match) {
-      console.log("Unerwartete Antwort:", text);
+    console.log("OpenAI Response:", text);
+
+    // Versuch, direkt zu parsen
+    let result;
+    try {
+      result = JSON.parse(text);
+    } catch {
+      const match = text.match(/\{[\s\S]*\}/);
+      if (match) result = JSON.parse(match[0]);
+    }
+
+    if (!result || typeof result.score === "undefined") {
       return res.status(200).json({
         score: 50,
-        reasons: ["Antwort konnte nicht analysiert werden."],
+        reasons: ["Antwort konnte nicht im JSON-Format gelesen werden."],
       });
     }
 
-    const result = JSON.parse(match[0]);
     res.status(200).json(result);
   } catch (err) {
     console.error("Fehler bei Analyse:", err);
