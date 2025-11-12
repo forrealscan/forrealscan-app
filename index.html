@@ -74,21 +74,56 @@
     </footer>
 
     <script>
-        function scanFile() {
-            const fileInput = document.getElementById('fileInput');
-            const resultDiv = document.getElementById('result');
+        
+async function scanFile() {
+  const fileInput = document.getElementById('fileInput');
+  const resultDiv = document.getElementById('result');
 
-            if (fileInput.files.length === 0) {
-                alert("Bitte wähle zuerst eine Datei aus!");
-                return;
-            }
+  if (fileInput.files.length === 0) {
+    alert("Bitte wähle zuerst eine Datei aus!");
+    return;
+  }
 
-            // Platzhalter: Simulierter KI-Prozentwert
-            const simulatedPercent = Math.floor(Math.random() * 101); // 0-100%
-            resultDiv.innerText = `Geschätzter KI-Anteil: ${simulatedPercent}%`;
+  const file = fileInput.files[0];
 
-            // Hier später: Upload der Datei an Backend + ChatGPT API
-        }
+  // Datei in Data-URL umwandeln
+  const dataUrl = await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
+  resultDiv.innerText = "Analysiere…";
+
+  try {
+    const r = await fetch("/api/analyze", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        dataUrl,
+        mimeType: file.type,
+        fileName: file.name
+      })
+    });
+
+    const out = await r.json();
+
+    if (r.ok) {
+      const pct = typeof out.score === "number" ? out.score : 50;
+      const reasons = Array.isArray(out.reasons) ? out.reasons.join(" · ") : "";
+      resultDiv.innerText = `Geschätzter KI-Anteil: ${pct}%${reasons ? "\nHinweise: " + reasons : ""}`;
+    } else {
+      resultDiv.innerText = "Fehler: " + (out.error || "Analyse fehlgeschlagen");
+    }
+  } catch (e) {
+    console.error(e);
+    resultDiv.innerText = "Netzwerk-/Serverfehler.";
+  }
+}
+
+
     </script>
 </body>
 </html>
+
