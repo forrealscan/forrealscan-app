@@ -18,16 +18,16 @@ export default async function handler(req, res) {
 
   const prompt = `
 Du bist ein KI-Detektor. Analysiere das bereitgestellte Bild.
-Bewerte, ob es wahrscheinlich von einer KI generiert wurde.
-Gib ausschließlich eine gültige JSON-Antwort aus, ohne zusätzlichen Text, exakt in diesem Format:
+Gib NUR eine gültige JSON-Antwort aus – KEINEN Text davor oder danach!
 
 {
-  "score": 0-100, 
+  "score": Zahl von 0 bis 100,
   "reasons": ["kurze Begründung 1", "kurze Begründung 2"]
 }
 
 - 0 = sehr menschlich
 - 100 = sehr wahrscheinlich KI-generiert
+Antworte immer exakt in diesem Format.
 `;
 
   try {
@@ -40,7 +40,11 @@ Gib ausschließlich eine gültige JSON-Antwort aus, ohne zusätzlichen Text, exa
       body: JSON.stringify({
         model: "gpt-4o-mini",
         messages: [
-          { role: "system", content: "Du bist ein strenger JSON-Rückgabe-Detektor für KI-generierte Bilder." },
+          {
+            role: "system",
+            content:
+              "Du bist ein KI-Detektor, der IMMER nur gültiges JSON ohne zusätzlichen Text ausgibt.",
+          },
           {
             role: "user",
             content: [
@@ -51,33 +55,28 @@ Gib ausschließlich eine gültige JSON-Antwort aus, ohne zusätzlichen Text, exa
         ],
         temperature: 0.2,
         max_tokens: 500,
+        response_format: { type: "json_object" }, // 👉 erzwingt echtes JSON
       }),
     });
 
     const data = await openaiRes.json();
 
-    const text = data?.choices?.[0]?.message?.content || "";
-    console.log("OpenAI Response:", text);
-
-    // Versuch, direkt zu parsen
-    let result;
-    try {
-      result = JSON.parse(text);
-    } catch {
-      const match = text.match(/\{[\s\S]*\}/);
-      if (match) result = JSON.parse(match[0]);
-    }
-
-    if (!result || typeof result.score === "undefined") {
+    const content = data?.choices?.[0]?.message?.content;
+    if (!content) {
+      console.log("Keine Antwort von OpenAI:", data);
       return res.status(200).json({
         score: 50,
-        reasons: ["Antwort konnte nicht im JSON-Format gelesen werden."],
+        reasons: ["Keine gültige Antwort von OpenAI erhalten."],
       });
     }
 
+    const result = JSON.parse(content);
     res.status(200).json(result);
   } catch (err) {
     console.error("Fehler bei Analyse:", err);
-    res.status(500).json({ error: "Fehler bei API-Aufruf", details: err.message });
+    res.status(500).json({
+      error: "Fehler bei API-Aufruf",
+      details: err.message,
+    });
   }
 }
