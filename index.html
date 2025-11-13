@@ -181,7 +181,8 @@
             resultDiv.style.color = "#222";
             resultDiv.textContent = "Analyse läuft …";
 
-            const response = await fetch("/api/analyze", {
+            const response = await fetch("/api/analyze_v2", {
+, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ imageBase64: base64String }),
@@ -236,3 +237,4 @@
   </script>
 </body>
 </html>
+
