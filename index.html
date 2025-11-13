@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ForRealScan – Minimaler Test</title>
-
+  <title>ForRealScan – Mascot Version</title>
   <style>
     * { box-sizing: border-box; }
     body {
@@ -17,7 +16,6 @@
     }
     h1 { margin-top: 0; font-size: 32px; }
     p.subtitle { color: #555; margin-bottom: 30px; }
-
     #box {
       max-width: 900px;
       margin: 0 auto;
@@ -26,7 +24,6 @@
       border-radius: 12px;
       box-shadow: 0 6px 20px rgba(0,0,0,0.12);
     }
-
     #preview {
       max-width: 100%;
       margin-top: 25px;
@@ -34,7 +31,6 @@
       display: none;
       box-shadow: 0 4px 12px rgba(0,0,0,0.18);
     }
-
     #scanBtn {
       background-color: #2d8f3c;
       color: white;
@@ -46,140 +42,151 @@
       margin-top: 15px;
     }
     #scanBtn:hover { background-color: #247330; }
-
     select {
       margin-top: 10px;
       padding: 6px 10px;
       font-size: 15px;
       border-radius: 6px;
     }
-
     #result {
       margin-top: 20px;
       font-size: 16px;
       line-height: 1.5;
     }
+    .mascot {
+      font-size: 54px;
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 <body>
   <h1>ForRealScan</h1>
-  <p class="subtitle">Minimaler Test – API Versionen 2 & 3</p>
-
+  <p class="subtitle">Mit Veritas & Robo Maskottchen</p>
   <div id="box">
-
     <input id="fileInput" type="file" accept="image/*" />
-
     <br>
-
     <select id="apiVersion">
       <option value="v2">API-Version 2</option>
       <option value="v3">API-Version 3</option>
     </select>
-
     <br>
-
     <button id="scanBtn">Test starten</button>
-
     <img id="preview" alt="Bildvorschau" />
-
     <div id="result"></div>
   </div>
 
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
+<script>
+document.addEventListener("DOMContentLoaded", () => {
 
-      const fileInput   = document.getElementById("fileInput");
-      const previewImg  = document.getElementById("preview");
-      const scanBtn     = document.getElementById("scanBtn");
-      const resultDiv   = document.getElementById("result");
-      const apiVersion  = document.getElementById("apiVersion");
+  const fileInput   = document.getElementById("fileInput");
+  const previewImg  = document.getElementById("preview");
+  const scanBtn     = document.getElementById("scanBtn");
+  const resultDiv   = document.getElementById("result");
+  const apiVersion  = document.getElementById("apiVersion");
 
-      function reset() {
-        resultDiv.innerHTML = "";
-        resultDiv.style.color = "#000";
+  function reset() {
+    resultDiv.innerHTML = "";
+    resultDiv.style.color = "#000";
+  }
+
+  fileInput.addEventListener("change", () => {
+    reset();
+    if (!fileInput.files.length) {
+      previewImg.style.display = "none";
+      return;
+    }
+    previewImg.src = URL.createObjectURL(fileInput.files[0]);
+    previewImg.style.display = "block";
+  });
+
+  scanBtn.addEventListener("click", async () => {
+    reset();
+
+    if (!fileInput.files.length) {
+      resultDiv.style.color = "red";
+      resultDiv.innerHTML = "Bitte zuerst ein Bild auswählen.";
+      return;
+    }
+
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+
+    reader.onloadend = async () => {
+
+      const base64 = reader.result.split(",")[1];
+      if (!base64) {
+        resultDiv.style.color = "red";
+        resultDiv.innerHTML = "Base64-Konvertierung fehlgeschlagen.";
+        return;
       }
 
-      fileInput.addEventListener("change", () => {
-        reset();
-        if (!fileInput.files.length) {
-          previewImg.style.display = "none";
-          return;
-        }
-        previewImg.src = URL.createObjectURL(fileInput.files[0]);
-        previewImg.style.display = "block";
-      });
+      resultDiv.textContent = "Analyse läuft …";
 
-      scanBtn.addEventListener("click", async () => {
-        reset();
+      const apiRoute = apiVersion.value === "v3"
+        ? "/api/analyze_v3"
+        : "/api/analyze_v2";
 
-        if (!fileInput.files.length) {
+      try {
+        const response = await fetch(apiRoute, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ imageBase64: base64 })
+        });
+
+        const data = await response.json();
+        console.log("Antwort:", data);
+
+        if (!response.ok) {
           resultDiv.style.color = "red";
-          resultDiv.innerHTML = "Bitte zuerst ein Bild auswählen.";
+          resultDiv.innerHTML = "Fehler: " + (data.error || "Unbekannt");
           return;
         }
 
-        const file = fileInput.files[0];
-        const reader = new FileReader();
+        if (typeof data.score !== "number") {
+          resultDiv.style.color = "red";
+          resultDiv.innerHTML = "Ungültige Antwort von der API.";
+          return;
+        }
 
-        reader.onloadend = async () => {
+        const score = Math.round(data.score);
 
-          const base64 = reader.result.split(",")[1];
-          if (!base64) {
-            resultDiv.style.color = "red";
-            resultDiv.innerHTML = "Base64-Konvertierung fehlgeschlagen.";
-            return;
-          }
+        let mascot = "";
+        let mascotText = "";
 
-          resultDiv.textContent = "Analyse läuft …";
+        if (score < 50) {
+          mascot = "🦉";
+          mascotText = "Veritas sagt:";
+        } else {
+          mascot = "🤖";
+          mascotText = "Robo erklärt:";
+        }
 
-          const apiRoute = apiVersion.value === "v3"
-            ? "/api/analyze_v3"
-            : "/api/analyze_v2";
+        let html = `
+          <div class="mascot">${mascot}</div>
+          <h3>${mascotText}</h3>
+          <p><strong>Analyse:</strong> ${score}% KI</p>
+        `;
 
-          try {
-            const response = await fetch(apiRoute, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ imageBase64: base64 })
-            });
+        if (data.reasons?.length) {
+          html += "<ul>";
+          data.reasons.forEach(r => {
+            html += `<li>${r}</li>`;
+          });
+          html += "</ul>";
+        }
 
-            const data = await response.json();
-            console.log("Antwort:", data);
+        resultDiv.innerHTML = html;
 
-            if (!response.ok) {
-              resultDiv.style.color = "red";
-              resultDiv.innerHTML = "Fehler: " + (data.error || "Unbekannt");
-              return;
-            }
+      } catch (err) {
+        console.error(err);
+        resultDiv.style.color = "red";
+        resultDiv.textContent = "Serverfehler – Analyse nicht möglich.";
+      }
+    };
 
-            if (typeof data.score !== "number") {
-              resultDiv.style.color = "red";
-              resultDiv.innerHTML = "Ungültige Antwort von der API.";
-              return;
-            }
-
-            let html = `<h3>Ergebnis: ${Math.round(data.score)}% KI</h3>`;
-
-            if (data.reasons?.length) {
-              html += "<ul>";
-              data.reasons.forEach(r => {
-                html += `<li>${r}</li>`;
-              });
-              html += "</ul>";
-            }
-
-            resultDiv.innerHTML = html;
-
-          } catch (err) {
-            console.error(err);
-            resultDiv.style.color = "red";
-            resultDiv.textContent = "Serverfehler – Analyse nicht möglich.";
-          }
-        };
-
-        reader.readAsDataURL(file);
-      });
-    });
-  </script>
+    reader.readAsDataURL(file);
+  });
+});
+</script>
 </body>
 </html>
