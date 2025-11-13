@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ForRealScan – Minimaler Test · API Stufe 3</title>
+
   <style>
     * {
       box-sizing: border-box;
@@ -30,7 +31,7 @@
     }
 
     #box {
-      max-width: 700px;
+      max-width: 900px;
       margin: 0 auto;
       background: #ffffff;
       padding: 25px 20px 35px;
@@ -44,7 +45,7 @@
 
     #scanBtn {
       margin-top: 15px;
-      padding: 10px 20px;
+      padding: 10px 24px;
       background-color: #2d8f3c;
       border: none;
       color: #fff;
@@ -67,7 +68,7 @@
     }
 
     #result {
-      margin-top: 18px;
+      margin-top: 20px;
       font-size: 16px;
       line-height: 1.5;
     }
@@ -78,17 +79,13 @@
 
     #result ul {
       text-align: left;
-      max-width: 560px;
+      max-width: 600px;
       margin: 8px auto 0;
       padding-left: 20px;
     }
 
     #result li {
       margin-bottom: 4px;
-    }
-
-    #result p {
-      margin: 6px 0 0;
     }
   </style>
 </head>
@@ -118,8 +115,6 @@
       const scanBtn = document.getElementById("scanBtn");
       const resultDiv = document.getElementById("result");
 
-      let previewUrl = null;
-
       function resetResult() {
         resultDiv.textContent = "";
         resultDiv.style.color = "#222";
@@ -128,98 +123,40 @@
       function escapeHtml(str) {
         return String(str).replace(/[&<>"']/g, (ch) => {
           switch (ch) {
-            case "&": return "&amp;";
-            case "<": return "&lt;";
-            case ">": return "&gt;";
-            case '"': return "&quot;";
-            case "'": return "&#39;";
-            default: return ch;
+            case "&":
+              return "&amp;";
+            case "<":
+              return "&lt;";
+            case ">":
+              return "&gt;";
+            case "\"":
+              return "&quot;";
+            case "'":
+              return "&#39;";
+            default:
+              return ch;
           }
         });
       }
 
-      // Hilfsfunktion: API aufrufen (v2, Fallback v1)
-      async function analyzeImage(base64String) {
-        const endpoints = ["/api/analyze_v2", "/api/analyze"];
-
-        for (const endpoint of endpoints) {
-          try {
-            const response = await fetch(endpoint, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ imageBase64: base64String })
-            });
-
-            // 404 = Route existiert nicht -> nächsten Endpoint probieren
-            if (response.status === 404) {
-              console.warn("Endpoint nicht gefunden:", endpoint);
-              continue;
-            }
-
-            // Text lesen (kann JSON oder HTML sein)
-            const text = await response.text();
-            let data = null;
-
-            try {
-              data = JSON.parse(text);
-            } catch (parseErr) {
-              console.error("Antwort ist kein gültiges JSON von", endpoint, parseErr, text);
-              return {
-                ok: false,
-                data: {
-                  error: "Antwort vom Server war kein gültiges JSON."
-                }
-              };
-            }
-
-            console.log("Antwort von", endpoint + ":", data);
-
-            return {
-              ok: response.ok,
-              data
-            };
-          } catch (err) {
-            console.error("Fehler beim Aufruf von", endpoint, err);
-            // weiter zum nächsten Endpoint
-          }
-        }
-
-        // Wenn wir hier landen, war kein Endpoint erreichbar
-        return {
-          ok: false,
-          data: {
-            error: "Kein gültiger API-Endpunkt erreichbar (analyze_v2 / analyze)."
-          }
-        };
-      }
-
-      // Bildvorschau sobald Datei gewählt wird
+      // Bildvorschau, sobald eine Datei gewählt wird
       fileInput.addEventListener("change", () => {
         resetResult();
 
         if (!fileInput.files || fileInput.files.length === 0) {
           previewImg.style.display = "none";
-          if (previewUrl) {
-            URL.revokeObjectURL(previewUrl);
-            previewUrl = null;
-          }
+          previewImg.removeAttribute("src");
           return;
         }
 
-        const file = fileInput.files[0];
-
-        if (previewUrl) {
-          URL.revokeObjectURL(previewUrl);
-          previewUrl = null;
-        }
-
-        previewUrl = URL.createObjectURL(file);
-        previewImg.src = previewUrl;
+        const selectedFile = fileInput.files[0];
+        const url = URL.createObjectURL(selectedFile);
+        previewImg.src = url;
         previewImg.style.display = "block";
       });
 
       // Klick auf "Test starten"
-      scanBtn.addEventListener("click", () => {
+      scanBtn.addEventListener("click", async () => {
         resetResult();
 
         if (!fileInput.files || fileInput.files.length === 0) {
@@ -228,19 +165,19 @@
           return;
         }
 
-        const file = fileInput.files[0];
+        const selectedFile = fileInput.files[0];
         const reader = new FileReader();
 
         reader.onerror = () => {
-          console.error("Fehler beim Lesen der Datei", reader.error);
+          console.error("Fehler beim Lesen der Datei:", reader.error);
           resultDiv.style.color = "red";
           resultDiv.innerHTML = "<b>Fehler:</b> Datei konnte nicht gelesen werden.";
         };
 
         reader.onloadend = async () => {
           try {
-            const resultString = String(reader.result || "");
-            const parts = resultString.split(",");
+            const dataUrl = String(reader.result);
+            const parts = dataUrl.split(",");
             const base64String = parts.length > 1 ? parts[1] : "";
 
             if (!base64String) {
@@ -253,37 +190,34 @@
             resultDiv.style.color = "#222";
             resultDiv.textContent = "Analyse läuft …";
 
-            const apiResult = await analyzeImage(base64String);
+            // Anfrage an deine API-Stufe-2-Route
+            const response = await fetch("/api/analyze_v2", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ imageBase64: base64String })
+            });
 
-            if (!apiResult) {
+            const data = await response.json();
+            console.log("Antwort von /api/analyze_v2:", data);
+
+            if (!response.ok) {
               resultDiv.style.color = "red";
               resultDiv.innerHTML =
-                "<b>Serverfehler:</b> Analyse nicht möglich.";
-              return;
-            }
-
-            const { ok, data } = apiResult;
-
-            if (!ok) {
-              resultDiv.style.color = "red";
-              const msg = data && data.error
-                ? escapeHtml(data.error)
-                : "Unbekannter Serverfehler.";
-              resultDiv.innerHTML = `<b>Fehler:</b> ${msg}`;
+                "<b>Fehler:</b> " +
+                escapeHtml(data.error || "Unbekannter Serverfehler.");
               return;
             }
 
             if (typeof data.score !== "number") {
               resultDiv.style.color = "red";
               resultDiv.innerHTML =
-                "<b>Fehler:</b> Antwort konnte nicht ausgewertet werden (score fehlt).";
+                "<b>Fehler:</b> Antwort konnte nicht ausgewertet werden.";
               return;
             }
 
             const score = Math.round(data.score);
             const reasons = Array.isArray(data.reasons) ? data.reasons : [];
 
-            resultDiv.style.color = "#222";
             let html = `<h3>Ergebnis: ${score}% KI</h3>`;
 
             if (reasons.length > 0) {
@@ -296,6 +230,7 @@
               html += "<p>Keine Begründungen von der KI erhalten.</p>";
             }
 
+            resultDiv.style.color = "#222";
             resultDiv.innerHTML = html;
           } catch (err) {
             console.error("Fehler in der Analyse:", err);
@@ -306,8 +241,7 @@
         };
 
         // Startet das Lesen der Datei -> triggert reader.onloadend oben
-        const file = fileInput.files[0];
-        reader.readAsDataURL(file);
+        reader.readAsDataURL(selectedFile);
       });
     });
   </script>
