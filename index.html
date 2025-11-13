@@ -43,33 +43,65 @@
   </div>
 
  <script>
-document.getElementById("scanBtn").addEventListener("click", () => {
-  const fileInput = document.getElementById("fileInput");
-  const resultDiv = document.getElementById("result");
+document.getElementById("scanBtn").addEventListener("click", async () => {
+    const fileInput = document.getElementById("fileInput");
+    const resultDiv = document.getElementById("result");
+    const preview = document.getElementById("preview");
 
-  if (!fileInput.files || fileInput.files.length === 0) {
-      resultDiv.innerHTML = "<b>Fehler:</b> Keine Datei ausgewählt.";
-      return;
-  }
+    if (!fileInput.files || fileInput.files.length === 0) {
+        resultDiv.innerHTML = "<b>Fehler:</b> Keine Datei ausgewählt.";
+        return;
+    }
 
-  const file = fileInput.files[0];
-  const reader = new FileReader();
+    const file = fileInput.files[0];
 
-  reader.onload = () => {
-      const imageURL = reader.result;
+    // Bild anzeigen
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+        const dataUrl = reader.result;
+        preview.src = dataUrl;
+        preview.style.display = "block";
 
-      resultDiv.innerHTML = `
-        <h3>Bildvorschau:</h3>
-        <img src="${imageURL}" style="max-width: 100%; border-radius: 10px; margin-top: 10px;">
-        <p>Super! Das Grundgerüst + Bildanzeige funktioniert 🎉</p>
-      `;
-  };
+        const base64String = dataUrl.split(",")[1];
 
-  reader.readAsDataURL(file);
+        resultDiv.innerHTML = "<p>🔍 Analyse läuft… bitte warten</p>";
+
+        try {
+            const res = await fetch("/api/analyze", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    imageBase64: base64String
+                }),
+            });
+
+            const data = await res.json();
+            console.log("API Antwort:", data);
+
+            if (data.error) {
+                resultDiv.innerHTML = `<b>Fehler:</b> ${data.error}`;
+                return;
+            }
+
+            resultDiv.innerHTML = `
+                <h3>Geschätzter KI-Anteil: ${data.score}%</h3>
+                <p>Begründungen:</p>
+                <ul>
+                    ${data.reasons.map(r => `<li>${r}</li>`).join("")}
+                </ul>
+            `;
+        } catch (err) {
+            resultDiv.innerHTML = "<b>Fehler:</b> Serverproblem bei der Analyse.";
+        }
+    };
+
+    reader.readAsDataURL(file);
 });
 </script>
 
 
+
 </body>
 </html>
+
 
