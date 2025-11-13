@@ -1,5 +1,3 @@
-// api/analyze.js
-
 export default async function handler(req, res) {
   try {
     if (req.method !== "POST") {
@@ -7,6 +5,7 @@ export default async function handler(req, res) {
     }
 
     const { imageBase64 } = req.body;
+
     if (!imageBase64) {
       return res.status(400).json({ error: "No image provided" });
     }
@@ -25,13 +24,19 @@ export default async function handler(req, res) {
         messages: [
           {
             role: "system",
-            content: "Gib ausschließlich JSON zurück."
+            content: "Du bist ein KI-Detektor. Gib ausschließlich gültiges JSON aus."
           },
           {
             role: "user",
             content: [
-              { type: "text", text: "Bewerte das Bild." },
-              { type: "image_url", image_url: `data:image/jpeg;base64,${imageBase64}` }
+              {
+                type: "text",
+                text: "Bewerte dieses Bild. Gib JSON zurück mit score (0–100) und reasons."
+              },
+              {
+                type: "image_url",
+                image_url: `data:image/jpeg;base64,${imageBase64}`
+              }
             ]
           }
         ]
@@ -39,11 +44,23 @@ export default async function handler(req, res) {
     });
 
     const data = await openaiRes.json();
-    const result = JSON.parse(data.choices[0].message.content);
 
-    res.status(200).json(result);
+    if (!data.choices || !data.choices[0]) {
+      return res.status(200).json({
+        score: 50,
+        reasons: ["Ungültige Antwort von OpenAI."]
+      });
+    }
+
+    const content = data.choices[0].message.content;
+    const result = JSON.parse(content);
+
+    return res.status(200).json(result);
 
   } catch (err) {
-    res.status(500).json({ error: "Server error", details: err.message });
+    return res.status(500).json({
+      error: "Serverfehler bei der Analyse",
+      details: err.message
+    });
   }
 }
