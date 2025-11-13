@@ -191,7 +191,7 @@
             resultDiv.textContent = "Analyse läuft …";
 
             // Anfrage an deine API-Stufe-2-Route
-            const response = await fetch("/api/analyze_v3", {
+            const response = await fetch("/api/analyze_v2", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ imageBase64: base64String })
@@ -247,4 +247,5 @@
   </script>
 </body>
 </html>
+
 
