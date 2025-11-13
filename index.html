@@ -3,13 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ForRealScan – Minimaler Test · API Stufe 3</title>
+  <title>ForRealScan – Minimaler Test</title>
 
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
+    * { box-sizing: border-box; }
     body {
       font-family: Arial, sans-serif;
       background-color: #f2f2f2;
@@ -18,53 +15,43 @@
       text-align: center;
       color: #222;
     }
-
-    h1 {
-      margin-top: 0;
-      font-size: 32px;
-    }
-
-    p.subtitle {
-      margin-top: 4px;
-      margin-bottom: 30px;
-      color: #555;
-    }
+    h1 { margin-top: 0; font-size: 32px; }
+    p.subtitle { color: #555; margin-bottom: 30px; }
 
     #box {
       max-width: 900px;
       margin: 0 auto;
-      background: #ffffff;
+      background: white;
       padding: 25px 20px 35px;
       border-radius: 12px;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-    }
-
-    #fileInput {
-      margin-top: 10px;
-    }
-
-    #scanBtn {
-      margin-top: 15px;
-      padding: 10px 24px;
-      background-color: #2d8f3c;
-      border: none;
-      color: #fff;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 15px;
-    }
-
-    #scanBtn:hover {
-      background-color: #247330;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.12);
     }
 
     #preview {
       max-width: 100%;
-      height: auto;
       margin-top: 25px;
       border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
       display: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+    }
+
+    #scanBtn {
+      background-color: #2d8f3c;
+      color: white;
+      padding: 10px 22px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-size: 15px;
+      margin-top: 15px;
+    }
+    #scanBtn:hover { background-color: #247330; }
+
+    select {
+      margin-top: 10px;
+      padding: 6px 10px;
+      font-size: 15px;
+      border-radius: 6px;
     }
 
     #result {
@@ -72,180 +59,127 @@
       font-size: 16px;
       line-height: 1.5;
     }
-
-    #result h3 {
-      margin: 0 0 10px;
-    }
-
-    #result ul {
-      text-align: left;
-      max-width: 600px;
-      margin: 8px auto 0;
-      padding-left: 20px;
-    }
-
-    #result li {
-      margin-bottom: 4px;
-    }
   </style>
 </head>
 <body>
   <h1>ForRealScan</h1>
-  <p class="subtitle">Minimaler Test – API Stufe 3</p>
+  <p class="subtitle">Minimaler Test – API Versionen 2 & 3</p>
 
   <div id="box">
-    <!-- Dateiupload + Button -->
+
     <input id="fileInput" type="file" accept="image/*" />
-    <br /><br />
+
+    <br>
+
+    <select id="apiVersion">
+      <option value="v2">API-Version 2</option>
+      <option value="v3">API-Version 3</option>
+    </select>
+
+    <br>
+
     <button id="scanBtn">Test starten</button>
 
-    <!-- Bildvorschau -->
     <img id="preview" alt="Bildvorschau" />
 
-    <!-- Ausgabe Ergebnis / Fehlermeldungen -->
     <div id="result"></div>
   </div>
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      console.log("Script geladen.");
 
-      const fileInput = document.getElementById("fileInput");
-      const previewImg = document.getElementById("preview");
-      const scanBtn = document.getElementById("scanBtn");
-      const resultDiv = document.getElementById("result");
+      const fileInput   = document.getElementById("fileInput");
+      const previewImg  = document.getElementById("preview");
+      const scanBtn     = document.getElementById("scanBtn");
+      const resultDiv   = document.getElementById("result");
+      const apiVersion  = document.getElementById("apiVersion");
 
-      function resetResult() {
-        resultDiv.textContent = "";
-        resultDiv.style.color = "#222";
+      function reset() {
+        resultDiv.innerHTML = "";
+        resultDiv.style.color = "#000";
       }
 
-      function escapeHtml(str) {
-        return String(str).replace(/[&<>"']/g, (ch) => {
-          switch (ch) {
-            case "&":
-              return "&amp;";
-            case "<":
-              return "&lt;";
-            case ">":
-              return "&gt;";
-            case "\"":
-              return "&quot;";
-            case "'":
-              return "&#39;";
-            default:
-              return ch;
-          }
-        });
-      }
-
-      // Bildvorschau, sobald eine Datei gewählt wird
       fileInput.addEventListener("change", () => {
-        resetResult();
-
-        if (!fileInput.files || fileInput.files.length === 0) {
+        reset();
+        if (!fileInput.files.length) {
           previewImg.style.display = "none";
-          previewImg.removeAttribute("src");
           return;
         }
-
-        const selectedFile = fileInput.files[0];
-        const url = URL.createObjectURL(selectedFile);
-        previewImg.src = url;
+        previewImg.src = URL.createObjectURL(fileInput.files[0]);
         previewImg.style.display = "block";
       });
 
-      // Klick auf "Test starten"
       scanBtn.addEventListener("click", async () => {
-        resetResult();
+        reset();
 
-        if (!fileInput.files || fileInput.files.length === 0) {
+        if (!fileInput.files.length) {
           resultDiv.style.color = "red";
-          resultDiv.innerHTML = "<b>Fehler:</b> Bitte zuerst ein Bild auswählen.";
+          resultDiv.innerHTML = "Bitte zuerst ein Bild auswählen.";
           return;
         }
 
-        const selectedFile = fileInput.files[0];
+        const file = fileInput.files[0];
         const reader = new FileReader();
 
-        reader.onerror = () => {
-          console.error("Fehler beim Lesen der Datei:", reader.error);
-          resultDiv.style.color = "red";
-          resultDiv.innerHTML = "<b>Fehler:</b> Datei konnte nicht gelesen werden.";
-        };
-
         reader.onloadend = async () => {
+
+          const base64 = reader.result.split(",")[1];
+          if (!base64) {
+            resultDiv.style.color = "red";
+            resultDiv.innerHTML = "Base64-Konvertierung fehlgeschlagen.";
+            return;
+          }
+
+          resultDiv.textContent = "Analyse läuft …";
+
+          const apiRoute = apiVersion.value === "v3"
+            ? "/api/analyze_v3"
+            : "/api/analyze_v2";
+
           try {
-            const dataUrl = String(reader.result);
-            const parts = dataUrl.split(",");
-            const base64String = parts.length > 1 ? parts[1] : "";
-
-            if (!base64String) {
-              resultDiv.style.color = "red";
-              resultDiv.innerHTML =
-                "<b>Fehler:</b> Konnte Bilddaten nicht in Base64 umwandeln.";
-              return;
-            }
-
-            resultDiv.style.color = "#222";
-            resultDiv.textContent = "Analyse läuft …";
-
-            // Anfrage an deine API-Stufe-2-Route
-            const response = await fetch("/api/analyze_v2", {
+            const response = await fetch(apiRoute, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ imageBase64: base64String })
+              body: JSON.stringify({ imageBase64: base64 })
             });
 
             const data = await response.json();
-            console.log("Antwort von /api/analyze_v2:", data);
+            console.log("Antwort:", data);
 
             if (!response.ok) {
               resultDiv.style.color = "red";
-              resultDiv.innerHTML =
-                "<b>Fehler:</b> " +
-                escapeHtml(data.error || "Unbekannter Serverfehler.");
+              resultDiv.innerHTML = "Fehler: " + (data.error || "Unbekannt");
               return;
             }
 
             if (typeof data.score !== "number") {
               resultDiv.style.color = "red";
-              resultDiv.innerHTML =
-                "<b>Fehler:</b> Antwort konnte nicht ausgewertet werden.";
+              resultDiv.innerHTML = "Ungültige Antwort von der API.";
               return;
             }
 
-            const score = Math.round(data.score);
-            const reasons = Array.isArray(data.reasons) ? data.reasons : [];
+            let html = `<h3>Ergebnis: ${Math.round(data.score)}% KI</h3>`;
 
-            let html = `<h3>Ergebnis: ${score}% KI</h3>`;
-
-            if (reasons.length > 0) {
+            if (data.reasons?.length) {
               html += "<ul>";
-              html += reasons
-                .map((r) => `<li>${escapeHtml(r)}</li>`)
-                .join("");
+              data.reasons.forEach(r => {
+                html += `<li>${r}</li>`;
+              });
               html += "</ul>";
-            } else {
-              html += "<p>Keine Begründungen von der KI erhalten.</p>";
             }
 
-            resultDiv.style.color = "#222";
             resultDiv.innerHTML = html;
+
           } catch (err) {
-            console.error("Fehler in der Analyse:", err);
+            console.error(err);
             resultDiv.style.color = "red";
-            resultDiv.innerHTML =
-              "<b>Serverfehler:</b> Analyse nicht möglich.";
+            resultDiv.textContent = "Serverfehler – Analyse nicht möglich.";
           }
         };
 
-        // Startet das Lesen der Datei -> triggert reader.onloadend oben
-        reader.readAsDataURL(selectedFile);
+        reader.readAsDataURL(file);
       });
     });
   </script>
 </body>
 </html>
-
-
