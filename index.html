@@ -42,20 +42,34 @@
     <div id="result" style="margin-top: 20px; font-size: 16px;"></div>
   </div>
 
-  <script>
-    document.getElementById("scanBtn").addEventListener("click", () => {
-      const fileInput = document.getElementById("fileInput");
-      const resultDiv = document.getElementById("result");
+ <script>
+document.getElementById("scanBtn").addEventListener("click", () => {
+  const fileInput = document.getElementById("fileInput");
+  const resultDiv = document.getElementById("result");
 
-      if (!fileInput.files || fileInput.files.length === 0) {
-        resultDiv.innerHTML = "<b>Fehler:</b> Keine Datei ausgewählt.";
-        return;
-      }
+  if (!fileInput.files || fileInput.files.length === 0) {
+      resultDiv.innerHTML = "<b>Fehler:</b> Keine Datei ausgewählt.";
+      return;
+  }
 
-      resultDiv.innerHTML = 
-        "<b>OK!</b> Datei wurde erkannt. Das Grundgerüst funktioniert 🎉";
-    });
-  </script>
+  const file = fileInput.files[0];
+  const reader = new FileReader();
+
+  reader.onload = () => {
+      const imageURL = reader.result;
+
+      resultDiv.innerHTML = `
+        <h3>Bildvorschau:</h3>
+        <img src="${imageURL}" style="max-width: 100%; border-radius: 10px; margin-top: 10px;">
+        <p>Super! Das Grundgerüst + Bildanzeige funktioniert 🎉</p>
+      `;
+  };
+
+  reader.readAsDataURL(file);
+});
+</script>
+
 
 </body>
 </html>
+
