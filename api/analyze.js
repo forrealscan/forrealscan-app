@@ -1,57 +1,70 @@
-export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Only POST allowed" });
-  }
+// /api/analyze.js – stabile Version
 
+export const config = { runtime: "edge" };
+
+export default async function handler(req) {
   try {
-    const { imageBase64 } = req.body;
-
-    if (!imageBase64) {
-      return res.status(400).json({ error: "No image provided" });
+    if (req.method !== "POST") {
+      return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405 });
     }
 
-    const openaiRes = await fetch("https://api.openai.com/v1/responses", {
+    const { imageBase64 } = await req.json();
+
+    if (!imageBase64) {
+      return new Response(JSON.stringify({ error: "No image provided" }), { status: 400 });
+    }
+
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      return new Response(JSON.stringify({ error: "OpenAI key missing" }), { status: 500 });
+    }
+
+    // Anfrage an OpenAI senden
+    const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
-        input: [
+        response_format: { type: "json_object" }, // zwingt JSON!
+        messages: [
+          {
+            role: "system",
+            content: "Du gibst IMMER nur gültiges JSON zurück. Keine Erklärungen.",
+          },
           {
             role: "user",
-            content: [
-              { type: "input_text", text: "Analysiere dieses Bild auf KI-Erzeugung. Gib ausschließlich gültiges JSON zurück: {\"score\":0-100,\"reasons\":[...]}." },
-              { type: "input_image", image_url: `data:image/jpeg;base64,${imageBase64}` }
-            ]
-          }
+            content: `Analysiere dieses Bild (Base64) und gib JSON zurück:
+            {
+              "score": 0-100,
+              "reasons": ["Grund 1", "Grund 2"]
+            }
+
+            Bild: ${imageBase64}`,
+          },
         ],
-        response_format: { type: "json_object" },
       }),
     });
 
     const data = await openaiRes.json();
-
-    // Wichtiger Teil: korrekter Zugriff auf neue OpenAI API
-    const content = data?.output?.[0]?.content?.[0]?.text;
+    const content = data?.choices?.[0]?.message?.content;
 
     if (!content) {
-      console.log("Ungültige OpenAI-Antwort:", data);
-      return res.status(200).json({
+      return new Response(JSON.stringify({
         score: 50,
-        reasons: ["OpenAI hat kein gültiges JSON zurückgegeben."],
-      });
+        reasons: ["Keine gültige Antwort von OpenAI."],
+      }), { status: 200 });
     }
 
     const result = JSON.parse(content);
-    return res.status(200).json(result);
+    return new Response(JSON.stringify(result), { status: 200 });
 
   } catch (err) {
-    console.error("API-Fehler:", err);
-    return res.status(500).json({
-      error: "Interner Fehler",
+    return new Response(JSON.stringify({
+      error: "Serverfehler",
       details: err.message,
-    });
+    }), { status: 500 });
   }
 }
