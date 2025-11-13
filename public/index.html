@@ -180,7 +180,47 @@
     #statusMessage.error {
       color: #c53030;
       font-weight: 600;
-    }
+    }/* --- MOBILE-FRIENDLY CONTROLS --- */
+
+.controls-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+button, select, input[type="file"] {
+  font-size: 18px;
+  padding: 14px 22px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+#scanBtn {
+  background: #1a8f3e;
+  color: white;
+  border: none;
+  transition: 0.2s;
+}
+
+#scanBtn:hover {
+  background: #157532;
+}
+
+input[type="file"] {
+  padding: 12px;
+  background: white;
+  border-radius: 10px;
+}
+
+@media (max-width: 600px) {
+  button, select, input[type="file"] {
+    width: 100%;
+    font-size: 20px;
+  }
+}
+
   </style>
 </head>
 
@@ -342,4 +382,5 @@
   </script>
 </body>
 </html>
+
 
