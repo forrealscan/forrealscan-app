@@ -220,6 +220,66 @@ input[type="file"] {
     font-size: 20px;
   }
 }
+/* --- GROSSE MOBILE-FREUNDLICHE BUTTONS --- */
+
+#scanBtn {
+    padding: 16px 32px !important;
+    font-size: 20px !important;
+    border-radius: 14px !important;
+    background: #1a8f39 !important;
+    color: white !important;
+    border: none !important;
+    cursor: pointer !important;
+    transition: 0.2s ease !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25) !important;
+}
+
+#scanBtn:hover {
+    background: #27b84e !important;
+    transform: scale(1.05) !important;
+}
+
+#scanBtn:active {
+    transform: scale(0.97) !important;
+}
+
+/* Datei-Input größer */
+#fileInput {
+    padding: 14px !important;
+    font-size: 18px !important;
+    border-radius: 12px !important;
+    background-color: #ffffff !important;
+    cursor: pointer !important;
+}
+
+/* API Auswahl größer */
+#apiVersion {
+    padding: 14px !important;
+    font-size: 18px !important;
+    border-radius: 12px !important;
+    border: none !important;
+    background: #ffffff !important;
+    cursor: pointer !important;
+}
+
+/* Mobile Optimierung */
+@media (max-width: 600px) {
+    #scanBtn,
+    #fileInput,
+    #apiVersion {
+        width: 100% !important;
+        margin-top: 12px !important;
+        font-size: 20px !important;
+        padding: 18px !important;
+    }
+
+    #controls {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+        width: 100% !important;
+    }
+}
 
   </style>
 </head>
@@ -382,5 +442,6 @@ input[type="file"] {
   </script>
 </body>
 </html>
+
 
 
