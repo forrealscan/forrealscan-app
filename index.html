@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ForRealScan – Minimaler Test</title>
+    <title>ForRealScan – KI Analyse</title>
 
     <style>
         body {
@@ -16,9 +16,15 @@
             background: white;
             padding: 30px;
             margin: auto;
-            width: 400px;
+            width: 450px;
             border-radius: 12px;
             box-shadow: 0px 3px 10px rgba(0,0,0,0.2);
+        }
+        #previewImg {
+            max-width: 100%;
+            border-radius: 10px;
+            margin-top: 15px;
+            display: none;
         }
     </style>
 </head>
@@ -26,33 +32,83 @@
 <body>
 
     <h1>ForRealScan</h1>
-    <p>Minimaler Test – Grundstruktur</p>
+    <p>Minimaler Test – API Stufe 3</p>
 
     <div id="box">
         <input id="fileInput" type="file" accept="image/*" /><br><br>
 
         <button id="scanBtn">Test starten</button>
 
+        <img id="previewImg" />
+
         <p id="result" style="margin-top:20px; font-weight:bold;"></p>
     </div>
 
-    <!-- JAVASCRIPT – MUSS AM ENDE STEHEN -->
     <script>
-        console.log("Script geladen.");  // Debug
+        console.log("Script geladen.");
 
         const scanBtn = document.getElementById("scanBtn");
         const fileInput = document.getElementById("fileInput");
         const resultDiv = document.getElementById("result");
+        const previewImg = document.getElementById("previewImg");
 
         scanBtn.addEventListener("click", () => {
-            console.log("Button wurde geklickt.");  // Debug
 
             if (!fileInput.files || fileInput.files.length === 0) {
                 resultDiv.innerHTML = "<b>Fehler:</b> Keine Datei ausgewählt.";
                 return;
             }
 
-            resultDiv.innerHTML = "OK! Datei wurde erkannt. Das Grundgerüst funktioniert 🎉";
+            const file = fileInput.files[0];
+
+            // Bildvorschau anzeigen
+            const reader = new FileReader();
+            reader.onload = () => {
+                previewImg.src = reader.result;
+                previewImg.style.display = "block";
+            };
+            reader.readAsDataURL(file);
+
+            // Gleicher Reader für Base64
+            const reader2 = new FileReader();
+            reader2.onloadend = async () => {
+
+                const base64 = reader2.result.split(",")[1];
+
+                resultDiv.innerHTML = "⏳ Bild wird analysiert…";
+
+                try {
+                    const res = await fetch("/api/analyze", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            imageBase64: base64
+                        })
+                    });
+
+                    const data = await res.json();
+                    console.log("Antwort:", data);
+
+                    if (data.error) {
+                        resultDiv.innerHTML = "<b>Fehler:</b> " + data.error;
+                        return;
+                    }
+
+                    resultDiv.innerHTML = `
+                        <h3>Ergebnis: ${data.score}% KI</h3>
+                        <ul>
+                            ${data.reasons.map(r => `<li>${r}</li>`).join("")}
+                        </ul>
+                    `;
+                }
+                catch (err) {
+                    console.error(err);
+                    resultDiv.innerHTML = "<b>Serverfehler:</b> Analyse nicht möglich.";
+                }
+
+            };
+
+            reader2.readAsDataURL(file);
         });
     </script>
 
