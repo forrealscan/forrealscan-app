@@ -7,9 +7,9 @@ export default async function handler(req) {
       return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405 });
     }
 
-    const { imageBase64 } = await req.json();
-    if (!imageBase64) {
-      return new Response(JSON.stringify({ error: "No image provided" }), { status: 400 });
+    const { imageBase64, mimeType } = await req.json();
+    if (!imageBase64 || !mimeType) {
+      return new Response(JSON.stringify({ error: "No image or MIME type provided" }), { status: 400 });
     }
 
     const apiKey = process.env.OPENAI_API_KEY;
@@ -17,7 +17,6 @@ export default async function handler(req) {
       return new Response(JSON.stringify({ error: "API key missing" }), { status: 500 });
     }
 
-    // 👉 Richtiges OpenAI Request Format
     const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -38,11 +37,11 @@ export default async function handler(req) {
             content: [
               {
                 type: "text",
-                text: "Bewerte das Bild. Gib JSON mit score (0–100) und reasons zurück."
+                text: "Analysiere dieses Bild. Gib JSON mit score (0–100) und reasons zurück."
               },
               {
                 type: "image_url",
-                image_url: `data:image/jpeg;base64,${imageBase64}`
+                image_url: `data:${mimeType};base64,${imageBase64}`
               }
             ]
           }
@@ -61,7 +60,16 @@ export default async function handler(req) {
     }
 
     const content = data.choices[0].message.content;
-    const result = JSON.parse(content);
+
+    let result;
+    try {
+      result = JSON.parse(content);
+    } catch {
+      return new Response(JSON.stringify({
+        score: 50,
+        reasons: ["Antwort war kein gültiges JSON."]
+      }), { status: 200 });
+    }
 
     return new Response(JSON.stringify(result), { status: 200 });
 
