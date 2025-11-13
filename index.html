@@ -1,107 +1,60 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ForRealScan – Minimal Start</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      text-align: center;
-      padding: 40px;
-    }
-    #box {
-      background: white;
-      padding: 30px;
-      width: 350px;
-      margin: auto;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    button {
-      padding: 10px 20px;
-      background: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-top: 15px;
-    }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ForRealScan – Minimaler Test</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f2f2;
+            text-align: center;
+            padding-top: 40px;
+        }
+        #box {
+            background: white;
+            padding: 30px;
+            margin: auto;
+            width: 400px;
+            border-radius: 12px;
+            box-shadow: 0px 3px 10px rgba(0,0,0,0.2);
+        }
+    </style>
 </head>
+
 <body>
 
-  <h1>ForRealScan</h1>
-  <p>Minimaler Test – Grundstruktur</p>
+    <h1>ForRealScan</h1>
+    <p>Minimaler Test – Grundstruktur</p>
 
-  <div id="box">
-    <input id="fileInput" type="file" accept="image/*" /><br><br>
-    <button id="scanBtn">Test starten</button>
+    <div id="box">
+        <input id="fileInput" type="file" accept="image/*" /><br><br>
 
-    <div id="result" style="margin-top: 20px; font-size: 16px;"></div>
-  </div>
+        <button id="scanBtn">Test starten</button>
 
- <script>
-document.getElementById("scanBtn").addEventListener("click", async () => {
-    const fileInput = document.getElementById("fileInput");
-    const resultDiv = document.getElementById("result");
-    const preview = document.getElementById("preview");
+        <p id="result" style="margin-top:20px; font-weight:bold;"></p>
+    </div>
 
-    if (!fileInput.files || fileInput.files.length === 0) {
-        resultDiv.innerHTML = "<b>Fehler:</b> Keine Datei ausgewählt.";
-        return;
-    }
+    <!-- JAVASCRIPT – MUSS AM ENDE STEHEN -->
+    <script>
+        console.log("Script geladen.");  // Debug
 
-    const file = fileInput.files[0];
+        const scanBtn = document.getElementById("scanBtn");
+        const fileInput = document.getElementById("fileInput");
+        const resultDiv = document.getElementById("result");
 
-    // Bild anzeigen
-    const reader = new FileReader();
-    reader.onloadend = async () => {
-        const dataUrl = reader.result;
-        preview.src = dataUrl;
-        preview.style.display = "block";
+        scanBtn.addEventListener("click", () => {
+            console.log("Button wurde geklickt.");  // Debug
 
-        const base64String = dataUrl.split(",")[1];
-
-        resultDiv.innerHTML = "<p>🔍 Analyse läuft… bitte warten</p>";
-
-        try {
-            const res = await fetch("/api/analyze", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    imageBase64: base64String
-                }),
-            });
-
-            const data = await res.json();
-            console.log("API Antwort:", data);
-
-            if (data.error) {
-                resultDiv.innerHTML = `<b>Fehler:</b> ${data.error}`;
+            if (!fileInput.files || fileInput.files.length === 0) {
+                resultDiv.innerHTML = "<b>Fehler:</b> Keine Datei ausgewählt.";
                 return;
             }
 
-            resultDiv.innerHTML = `
-                <h3>Geschätzter KI-Anteil: ${data.score}%</h3>
-                <p>Begründungen:</p>
-                <ul>
-                    ${data.reasons.map(r => `<li>${r}</li>`).join("")}
-                </ul>
-            `;
-        } catch (err) {
-            resultDiv.innerHTML = "<b>Fehler:</b> Serverproblem bei der Analyse.";
-        }
-    };
-
-    reader.readAsDataURL(file);
-});
-</script>
-
-
+            resultDiv.innerHTML = "OK! Datei wurde erkannt. Das Grundgerüst funktioniert 🎉";
+        });
+    </script>
 
 </body>
 </html>
-
-
