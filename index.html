@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ForRealScan – Veritas & Robo</title>
 
+  <!-- Fix für 404 /api/i – Icon hinterlegen -->
+  <link rel="icon" type="image/png" href="/mascots/Veritas.png" />
+  <link rel="apple-touch-icon" href="/mascots/Veritas.png" />
+  <link rel="shortcut icon" href="/mascots/Veritas.png" />
+
   <style>
     * {
       box-sizing: border-box;
@@ -23,11 +28,12 @@
 
     body.theme-veritas {
       background: radial-gradient(circle at top, #fdf6e3, #d6f5d0);
+      color: #222;
     }
 
     body.theme-robo {
       background: radial-gradient(circle at top, #021a33, #041524);
-      color: #f3f7ff;
+      color: #f4f7ff;
     }
 
     h1 {
@@ -37,7 +43,6 @@
 
     p.subtitle {
       color: #555;
-      margin-bottom: 30px;
     }
 
     body.theme-robo p.subtitle {
@@ -45,47 +50,38 @@
     }
 
     #box {
-      max-width: 980px;
-      margin: 0 auto;
+      max-width: 950px;
+      margin: 20px auto;
       background: #ffffff;
       padding: 25px 20px 35px;
-      border-radius: 16px;
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16);
+      border-radius: 18px;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.16);
       transition: background 0.6s ease, box-shadow 0.6s ease;
     }
 
     body.theme-veritas #box {
-      background: linear-gradient(
-        135deg,
-        rgba(252, 247, 231, 0.96),
-        rgba(224, 245, 213, 0.98)
-      );
+      background: rgba(255, 255, 240, 0.95);
     }
 
     body.theme-robo #box {
-      background: radial-gradient(circle at top, #071b30, #020816);
+      background: rgba(10, 20, 40, 0.9);
       box-shadow: 0 18px 40px rgba(0, 0, 0, 0.7);
     }
 
     #controls {
       display: flex;
       flex-wrap: wrap;
-      gap: 12px;
       justify-content: center;
-      align-items: center;
-      margin-bottom: 18px;
+      gap: 12px;
+      margin-bottom: 15px;
     }
 
+    select,
     input[type="file"] {
-      max-width: 260px;
-    }
-
-    select {
       padding: 6px 10px;
-      font-size: 15px;
       border-radius: 8px;
       border: 1px solid #ccc;
-      min-width: 150px;
+      font-size: 15px;
     }
 
     #scanBtn {
@@ -97,80 +93,53 @@
       cursor: pointer;
       font-size: 15px;
       font-weight: 600;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
-      transition: background 0.2s ease, transform 0.1s ease,
-        box-shadow 0.2s ease;
+      transition: 0.2s ease;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
     }
 
     #scanBtn:hover {
       background-color: #247330;
-      transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.22);
-    }
-
-    #scanBtn:active {
-      transform: translateY(0);
-      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+      transform: translateY(-2px);
     }
 
     #preview {
       width: 100%;
-      max-width: 860px;
-      margin-top: 20px;
+      max-width: 850px;
       border-radius: 12px;
+      margin-top: 20px;
       display: none;
-      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.23);
+      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.25);
     }
-
-    /* Ergebnisbereich */
 
     #resultWrapper {
       margin-top: 26px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 18px;
-    }
-
-    #mascotCard {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
+      gap: 16px;
     }
 
     #mascotImage {
       width: 140px;
-      height: auto;
-      border-radius: 18px;
-      object-fit: cover;
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
       display: none;
-      background: rgba(255, 255, 255, 0.3);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.8);
       padding: 6px;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
     }
 
     #speakerName {
       font-size: 20px;
       font-weight: 700;
-      margin: 4px 0 0;
     }
-
-    #analysisSummary {
-      font-size: 15px;
-      margin: 0;
-    }
-
-    /* Ladebalken für KI-Score */
 
     #progressContainer {
       width: 100%;
       max-width: 420px;
-      background: rgba(0, 0, 0, 0.06);
+      background: rgba(0, 0, 0, 0.1);
       border-radius: 999px;
-      overflow: hidden;
-      margin-top: 6px;
       display: none;
+      overflow: hidden;
     }
 
     body.theme-robo #progressContainer {
@@ -191,26 +160,16 @@
 
     #progressLabel {
       margin-top: 4px;
-      font-size: 14px;
       font-weight: 600;
     }
 
     #result {
-      margin-top: 10px;
-      font-size: 15px;
-      line-height: 1.6;
-      max-width: 640px;
+      max-width: 650px;
       text-align: left;
     }
 
     #result ul {
       padding-left: 20px;
-      margin-top: 8px;
-      margin-bottom: 6px;
-    }
-
-    #result li {
-      margin-bottom: 4px;
     }
 
     #statusMessage {
@@ -222,30 +181,9 @@
       color: #c53030;
       font-weight: 600;
     }
-
-    #statusMessage.info {
-      color: #555;
-    }
-
-    body.theme-robo #statusMessage.info {
-      color: #d3e1ff;
-    }
-
-    @media (max-width: 720px) {
-      #box {
-        margin: 0 6px;
-        padding: 18px 12px 24px;
-      }
-      #preview {
-        max-height: 260px;
-        object-fit: cover;
-      }
-      #mascotImage {
-        width: 120px;
-      }
-    }
   </style>
 </head>
+
 <body>
   <h1>ForRealScan</h1>
   <p class="subtitle">Mit Veritas & Robo – KI-Check für deine Bilder</p>
@@ -260,21 +198,18 @@
       <button id="scanBtn">Test starten</button>
     </div>
 
-    <img id="preview" alt="Bildvorschau" />
+    <img id="preview" />
 
     <div id="resultWrapper">
-      <div id="mascotCard">
-        <img id="mascotImage" alt="ForRealScan Maskottchen" />
-        <div id="speakerName"></div>
-        <p id="analysisSummary"></p>
+      <img id="mascotImage" />
+      <div id="speakerName"></div>
 
-        <div id="progressContainer">
-          <div id="progressBar"></div>
-        </div>
-        <div id="progressLabel"></div>
+      <div id="progressContainer">
+        <div id="progressBar"></div>
       </div>
+      <div id="progressLabel"></div>
 
-      <div id="statusMessage" class="info"></div>
+      <div id="statusMessage"></div>
       <div id="result"></div>
     </div>
   </div>
@@ -288,7 +223,6 @@
 
       const mascotImage = document.getElementById("mascotImage");
       const speakerName = document.getElementById("speakerName");
-      const analysisSummary = document.getElementById("analysisSummary");
       const resultDiv = document.getElementById("result");
       const statusMessage = document.getElementById("statusMessage");
 
@@ -296,15 +230,13 @@
       const progressBar = document.getElementById("progressBar");
       const progressLabel = document.getElementById("progressLabel");
 
-      let currentAnimationFrame = null;
+      let currentAnim = null;
 
       function resetUI() {
-        resultDiv.innerHTML = "";
-        statusMessage.textContent = "";
-        statusMessage.className = "";
         mascotImage.style.display = "none";
         speakerName.textContent = "";
-        analysisSummary.textContent = "";
+        resultDiv.innerHTML = "";
+        statusMessage.textContent = "";
         progressContainer.style.display = "none";
         progressBar.style.width = "0%";
         progressLabel.textContent = "";
@@ -320,27 +252,25 @@
         previewImg.style.display = "block";
       });
 
-      function animateScore(from, to, durationMs) {
-        if (currentAnimationFrame) {
-          cancelAnimationFrame(currentAnimationFrame);
-        }
+      function animateScore(target) {
+        if (currentAnim) cancelAnimationFrame(currentAnim);
 
-        const start = performance.now();
-        const clampedTo = Math.max(0, Math.min(100, to));
+        let startValue = 0;
+        const duration = 900;
+        const startTime = performance.now();
 
         function step(now) {
-          const elapsed = now - start;
-          const t = Math.min(1, elapsed / durationMs);
-          const value = Math.round(from + (clampedTo - from) * t);
+          const t = Math.min(1, (now - startTime) / duration);
+          const value = Math.round(startValue + (target - startValue) * t);
           progressBar.style.width = value + "%";
-          progressLabel.textContent = "Geschätzter KI-Anteil: " + value + " %";
+          progressLabel.textContent = "KI-Wahrscheinlichkeit: " + value + "%";
 
           if (t < 1) {
-            currentAnimationFrame = requestAnimationFrame(step);
+            currentAnim = requestAnimationFrame(step);
           }
         }
 
-        currentAnimationFrame = requestAnimationFrame(step);
+        currentAnim = requestAnimationFrame(step);
       }
 
       scanBtn.addEventListener("click", async () => {
@@ -352,96 +282,60 @@
           return;
         }
 
-        const file = fileInput.files[0];
-        const reader = new FileReader();
+        statusMessage.textContent = "Analyse läuft …";
 
+        const reader = new FileReader();
         reader.onloadend = async () => {
           const base64 = reader.result.split(",")[1];
-          if (!base64) {
-            statusMessage.textContent =
-              "Base64-Konvertierung fehlgeschlagen.";
+
+          const route =
+            apiVersion.value === "v3" ? "/api/analyze_v3" : "/api/analyze_v2";
+
+          const response = await fetch(route, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ imageBase64: base64 }),
+          });
+
+          const data = await response.json();
+          console.log("API:", data);
+
+          if (!response.ok || typeof data.score !== "number") {
+            statusMessage.textContent = "Fehler: " + (data.error || "Keine valide Antwort");
             statusMessage.className = "error";
             return;
           }
 
-          statusMessage.textContent = "Analyse läuft …";
-          statusMessage.className = "info";
+          const score = Math.round(Math.max(0, Math.min(100, data.score)));
 
-          const apiRoute =
-            apiVersion.value === "v3" ? "/api/analyze_v3" : "/api/analyze_v2";
-
-          try {
-            const response = await fetch(apiRoute, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ imageBase64: base64 }),
-            });
-
-            const data = await response.json();
-            console.log("Antwort:", data);
-
-            if (!response.ok) {
-              statusMessage.textContent =
-                "Fehler: " + (data.error || "Unbekannter Fehler");
-              statusMessage.className = "error";
-              return;
-            }
-
-            if (typeof data.score !== "number") {
-              statusMessage.textContent = "Ungültige Antwort von der API.";
-              statusMessage.className = "error";
-              return;
-            }
-
-            const score = Math.round(
-              Math.max(0, Math.min(100, data.score))
-            );
-
-            // Theme & Mascot wählen
-            if (score < 50) {
-              document.body.classList.remove("theme-robo");
-              document.body.classList.add("theme-veritas");
-              mascotImage.src = "/mascots/Veritas.png";
-              speakerName.textContent = "Veritas sagt:";
-              analysisSummary.textContent =
-                "Dieses Bild wirkt überwiegend natürlich aufgenommen.";
-            } else {
-              document.body.classList.remove("theme-veritas");
-              document.body.classList.add("theme-robo");
-              mascotImage.src = "/mascots/Robo.png";
-              speakerName.textContent = "Robo erklärt:";
-              analysisSummary.textContent =
-                "Dieses Bild zeigt deutliche Hinweise auf KI-Generierung.";
-            }
-
-            mascotImage.style.display = "block";
-
-            // Ladebalken für KI-Score
-            progressContainer.style.display = "block";
-            animateScore(0, score, 800);
-
-            // Gründe anzeigen
-            let html = "";
-            if (Array.isArray(data.reasons) && data.reasons.length) {
-              html += "<ul>";
-              data.reasons.forEach((r) => {
-                html += "<li>" + String(r) + "</li>";
-              });
-              html += "</ul>";
-            }
-            resultDiv.innerHTML = html;
-
-            statusMessage.textContent = "Analyse abgeschlossen.";
-            statusMessage.className = "info";
-          } catch (err) {
-            console.error(err);
-            statusMessage.textContent =
-              "Serverfehler – Analyse derzeit nicht möglich.";
-            statusMessage.className = "error";
+          if (score < 50) {
+            document.body.classList.add("theme-veritas");
+            document.body.classList.remove("theme-robo");
+            mascotImage.src = "/mascots/Veritas.png";
+            speakerName.textContent = "Veritas sagt:";
+          } else {
+            document.body.classList.add("theme-robo");
+            document.body.classList.remove("theme-veritas");
+            mascotImage.src = "/mascots/Robo.png";
+            speakerName.textContent = "Robo erklärt:";
           }
+
+          mascotImage.style.display = "block";
+
+          progressContainer.style.display = "block";
+          animateScore(score);
+
+          if (Array.isArray(data.reasons)) {
+            let html = "<ul>";
+            for (const r of data.reasons) html += "<li>" + r + "</li>";
+            html += "</ul>";
+            resultDiv.innerHTML = html;
+          }
+
+          statusMessage.textContent = "Analyse abgeschlossen.";
         };
 
-        reader.readAsDataURL(file);
+        reader.readAsDataURL(fileInput.files[0]);
       });
     });
   </script>
