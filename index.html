@@ -1,49 +1,61 @@
-<script>
-document.getElementById("scanBtn").addEventListener("click", async () => {
-    const fileInput = document.getElementById("fileInput");
-    const resultDiv = document.getElementById("result");
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ForRealScan – Minimal Start</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      text-align: center;
+      padding: 40px;
+    }
+    #box {
+      background: white;
+      padding: 30px;
+      width: 350px;
+      margin: auto;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    button {
+      padding: 10px 20px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
 
-    if (!fileInput.files || fileInput.files.length === 0) {
+  <h1>ForRealScan</h1>
+  <p>Minimaler Test – Grundstruktur</p>
+
+  <div id="box">
+    <input id="fileInput" type="file" accept="image/*" /><br><br>
+    <button id="scanBtn">Test starten</button>
+
+    <div id="result" style="margin-top: 20px; font-size: 16px;"></div>
+  </div>
+
+  <script>
+    document.getElementById("scanBtn").addEventListener("click", () => {
+      const fileInput = document.getElementById("fileInput");
+      const resultDiv = document.getElementById("result");
+
+      if (!fileInput.files || fileInput.files.length === 0) {
         resultDiv.innerHTML = "<b>Fehler:</b> Keine Datei ausgewählt.";
         return;
-    }
+      }
 
-    const file = fileInput.files[0];
-    const reader = new FileReader();
+      resultDiv.innerHTML = 
+        "<b>OK!</b> Datei wurde erkannt. Das Grundgerüst funktioniert 🎉";
+    });
+  </script>
 
-    reader.onloadend = async () => {
-        const base64String = reader.result.split(",")[1];
-
-        try {
-            const res = await fetch("/api/analyze", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    imageBase64: base64String
-                })
-            });
-
-            const data = await res.json();
-            console.log("API Antwort:", data);
-
-            if (data.error) {
-                resultDiv.innerHTML = `<b>Fehler:</b> ${data.error}`;
-                return;
-            }
-
-            resultDiv.innerHTML = `
-                <h3>Geschätzter KI-Anteil: ${data.score}%</h3>
-                <p>Begründungen:</p>
-                <ul>
-                    ${data.reasons.map(r => `<li>${r}</li>`).join("")}
-                </ul>
-            `;
-        } catch (err) {
-            console.error(err);
-            resultDiv.innerHTML = "<b>Fehler:</b> Serverproblem bei der Analyse.";
-        }
-    };
-
-    reader.readAsDataURL(file);
-});
-</script>
+</body>
+</html>
