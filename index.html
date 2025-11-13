@@ -1,129 +1,50 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ForRealScan - Scan it. Know it.</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f7f7f7;
-            text-align: center;
-            margin: 0;
-            padding: 0;
-        }
-        header {
-            background: #4CAF50;
-            color: white;
-            padding: 20px;
-        }
-        h1 {
-            margin: 0;
-        }
-        main {
-            margin: 40px auto;
-            max-width: 500px;
-            padding: 20px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        input[type="file"] {
-            margin: 20px 0;
-        }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        #result {
-            margin-top: 30px;
-            font-size: 20px;
-            font-weight: bold;
-        }
-        footer {
-            margin-top: 50px;
-            font-size: 12px;
-            color: #777;
-        }
-    </style>
-</head>
-<body>
-    <header>
-        <h1>ForRealScan</h1>
-        <p>Scan it. Know it.</p>
-    </header>
+<script>
+document.getElementById("scanBtn").addEventListener("click", async () => {
+    const fileInput = document.getElementById("fileInput");
+    const resultDiv = document.getElementById("result");
 
-    <main>
-        <p>Wähle ein Bild oder Video, um den KI-Anteil zu prüfen:</p>
-        <input type="file" id="fileInput" accept="image/*,video/*">
-        <br>
-        <button onclick="scanFile()">Scan starten</button>
-        <div id="result">Ergebnis erscheint hier...</div>
-    </main>
-
-    <footer>
-        <p>Alle Dateien werden nur für die Analyse genutzt und nicht gespeichert. Beta-Test Version.</p>
-    </footer>
-
-    <script>
-        
-async function scanFile() {
-  const fileInput = document.getElementById('fileInput');
-  const resultDiv = document.getElementById('result');
-
-  if (fileInput.files.length === 0) {
-    alert("Bitte wähle zuerst eine Datei aus!");
-    return;
-  }
-
-  const file = fileInput.files[0];
-
-  // Datei in Data-URL umwandeln
-  const dataUrl = await new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-
-  resultDiv.innerText = "Analysiere…";
-
-  try {
-    const r = await fetch("/api/analyze", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        dataUrl,
-        mimeType: file.type,
-        fileName: file.name
-      })
-    });
-
-    const out = await r.json();
-
-    if (r.ok) {
-      const pct = typeof out.score === "number" ? out.score : 50;
-      const reasons = Array.isArray(out.reasons) ? out.reasons.join(" · ") : "";
-      resultDiv.innerText = `Geschätzter KI-Anteil: ${pct}%${reasons ? "\nHinweise: " + reasons : ""}`;
-    } else {
-      resultDiv.innerText = "Fehler: " + (out.error || "Analyse fehlgeschlagen");
+    if (!fileInput.files || fileInput.files.length === 0) {
+        resultDiv.innerHTML = "<b>Fehler:</b> Keine Datei ausgewählt.";
+        return;
     }
-  } catch (e) {
-    console.error(e);
-    resultDiv.innerText = "Netzwerk-/Serverfehler.";
-  }
-}
 
+    const file = fileInput.files[0];
 
-    </script>
-</body>
-</html>
+    // Bild in Base64 umwandeln
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+        const base64String = reader.result.split(",")[1]; // nur Base64 extrahieren
 
+        try {
+            const res = await fetch("/api/analyze", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    imageBase64: base64String
+                }),
+            });
+
+            const data = await res.json();
+            console.log("API Antwort:", data);
+
+            if (data.error) {
+                resultDiv.innerHTML = `<b>Fehler:</b> ${data.error}`;
+                return;
+            }
+
+            resultDiv.innerHTML = `
+                <h3>Geschätzter KI-Anteil: ${data.score}%</h3>
+                <p>Begründungen:</p>
+                <ul>
+                    ${data.reasons.map(r => `<li>${r}</li>`).join("")}
+                </ul>
+            `;
+        } catch (err) {
+            console.error(err);
+            resultDiv.innerHTML = "<b>Fehler:</b> Serverproblem bei der Analyse.";
+        }
+    };
+
+    reader.readAsDataURL(file);
+});
+</script>
