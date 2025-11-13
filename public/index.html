@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ForRealScan – Veritas & Robo</title>
 
-  <!-- Fix für 404 /api/i – Icon hinterlegen -->
+  <!-- Favicon (wichtig: kein /api/i) -->
   <link rel="icon" type="image/png" href="/mascots/Veritas.png" />
   <link rel="apple-touch-icon" href="/mascots/Veritas.png" />
   <link rel="shortcut icon" href="/mascots/Veritas.png" />
@@ -16,382 +16,393 @@
     }
 
     body {
+      margin: 0;
+      min-height: 100vh;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
         Arial, sans-serif;
-      margin: 0;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
       padding: 40px 10px;
-      text-align: center;
-      color: #222;
+      background: radial-gradient(circle at top, #f0f4ff, #0a1d30);
+      color: #f8fafc;
       transition: background 0.6s ease;
-      background: radial-gradient(circle at top, #f0f4ff, #dfe4ea);
     }
 
+    /* Hintergrund je nach Ergebnis */
     body.theme-veritas {
-      background: radial-gradient(circle at top, #fdf6e3, #d6f5d0);
-      color: #222;
+      background: radial-gradient(circle at top, #f2fff0, #0d3120);
     }
 
     body.theme-robo {
-      background: radial-gradient(circle at top, #021a33, #041524);
-      color: #f4f7ff;
+      background: radial-gradient(circle at top, #021533, #020617);
     }
 
     h1 {
-      margin-top: 0;
+      margin: 0 0 4px;
       font-size: 32px;
+      text-align: center;
     }
 
     p.subtitle {
-      color: #555;
-    }
-
-    body.theme-robo p.subtitle {
-      color: #c4d3ff;
+      margin: 0 0 26px;
+      text-align: center;
+      color: #cbd5f5;
+      font-size: 14px;
     }
 
     #box {
-      max-width: 950px;
-      margin: 20px auto;
-      background: #ffffff;
-      padding: 25px 20px 35px;
+      width: 100%;
+      max-width: 960px;
+      background: rgba(9, 17, 34, 0.96);
       border-radius: 18px;
-      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.16);
-      transition: background 0.6s ease, box-shadow 0.6s ease;
-    }
-
-    body.theme-veritas #box {
-      background: rgba(255, 255, 240, 0.95);
-    }
-
-    body.theme-robo #box {
-      background: rgba(10, 20, 40, 0.9);
-      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.7);
+      padding: 22px 18px 28px;
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.45);
     }
 
     #controls {
       display: flex;
       flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
       justify-content: center;
-      gap: 12px;
-      margin-bottom: 15px;
+      margin-bottom: 16px;
     }
 
-    select,
-    input[type="file"] {
-      padding: 6px 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
+    #fileInput {
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 10px;
+      background: #ffffff;
+      border: none;
+      cursor: pointer;
+      max-width: 260px;
+    }
+
+    #apiVersion {
+      padding: 12px 14px;
       font-size: 15px;
+      border-radius: 10px;
+      border: none;
+      background: #ffffff;
+      cursor: pointer;
     }
 
     #scanBtn {
-      background-color: #2d8f3c;
-      color: white;
-      padding: 10px 22px;
+      padding: 14px 32px;
+      font-size: 16px;
       border-radius: 999px;
+      background: #1a8f3e;
+      color: white;
       border: none;
       cursor: pointer;
-      font-size: 15px;
+      box-shadow: 0 6px 18px rgba(16, 185, 129, 0.35);
+      transition: background 0.18s ease, transform 0.12s ease,
+        box-shadow 0.18s ease;
       font-weight: 600;
-      transition: 0.2s ease;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
     }
 
     #scanBtn:hover {
-      background-color: #247330;
-      transform: translateY(-2px);
+      background: #22c55e;
+      transform: translateY(-1px);
+      box-shadow: 0 10px 25px rgba(34, 197, 94, 0.45);
+    }
+
+    #scanBtn:active {
+      transform: translateY(1px) scale(0.98);
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+    }
+
+    #scanBtn.loading {
+      opacity: 0.7;
+      cursor: wait;
+      transform: none;
+      box-shadow: none;
     }
 
     #preview {
-      width: 100%;
-      max-width: 850px;
-      border-radius: 12px;
-      margin-top: 20px;
       display: none;
-      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.25);
+      width: 100%;
+      max-height: 480px;
+      object-fit: contain;
+      border-radius: 14px;
+      margin-top: 16px;
+      background: #020617;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
     }
 
-    #resultWrapper {
+    /* Maskottchen & Ergebnisbereich */
+
+    #mascotSection {
       margin-top: 26px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
+      text-align: center;
     }
 
     #mascotImage {
       width: 140px;
-      display: none;
-      border-radius: 18px;
-      background: rgba(255, 255, 255, 0.8);
+      height: 140px;
+      object-fit: contain;
+      border-radius: 24px;
+      background: #020617;
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.75);
       padding: 6px;
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
     }
 
-    #speakerName {
-      font-size: 20px;
+    #mascotLabel {
+      margin-top: 10px;
       font-weight: 700;
     }
 
-    #progressContainer {
+    #mascotLabel span {
+      font-weight: 400;
+      opacity: 0.9;
+    }
+
+    /* Fortschrittsbalken */
+
+    .progress-wrapper {
+      margin: 22px auto 8px;
+      max-width: 460px;
+      text-align: left;
+    }
+
+    #progressBarTrack {
       width: 100%;
-      max-width: 420px;
-      background: rgba(0, 0, 0, 0.1);
+      height: 10px;
       border-radius: 999px;
-      display: none;
+      background: #0f172a;
       overflow: hidden;
+      box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.7);
     }
 
-    body.theme-robo #progressContainer {
-      background: rgba(255, 255, 255, 0.12);
-    }
-
-    #progressBar {
-      height: 16px;
+    #progressBarFill {
+      height: 100%;
       width: 0%;
-      border-radius: 999px;
-      background: linear-gradient(90deg, #2d8f3c, #8fdc4c);
-      transition: width 0.15s linear;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #22c55e, #3b82f6);
+      transition: width 0.6s ease;
     }
 
-    body.theme-robo #progressBar {
-      background: linear-gradient(90deg, #1dd4ff, #4a7cff);
+    #progressBarFill.loading {
+      width: 30%;
+      animation: progressPulse 1s ease-in-out infinite;
     }
 
-    #progressLabel {
+    @keyframes progressPulse {
+      0% {
+        transform: translateX(-40%);
+      }
+      50% {
+        transform: translateX(0%);
+      }
+      100% {
+        transform: translateX(40%);
+      }
+    }
+
+    #scoreText {
+      margin-top: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    #statusMessage {
       margin-top: 4px;
+      font-size: 13px;
+      text-align: center;
+      color: #cbd5f5;
+    }
+
+    #statusMessage.error {
+      color: #f97373;
       font-weight: 600;
     }
 
     #result {
-      max-width: 650px;
-      text-align: left;
+      margin-top: 18px;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #e5e7eb;
     }
 
     #result ul {
       padding-left: 20px;
     }
 
-    #statusMessage {
-      margin-top: 4px;
-      font-size: 14px;
+    #result li {
+      margin-bottom: 4px;
     }
 
-    #statusMessage.error {
-      color: #c53030;
-      font-weight: 600;
-    }/* --- MOBILE-FRIENDLY CONTROLS --- */
+    @media (max-width: 768px) {
+      body {
+        padding: 20px 8px;
+      }
 
-.controls-row {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 14px;
-  margin-bottom: 20px;
-}
+      h1 {
+        font-size: 26px;
+      }
 
-button, select, input[type="file"] {
-  font-size: 18px;
-  padding: 14px 22px;
-  border-radius: 10px;
-  cursor: pointer;
-}
+      #box {
+        padding: 18px 14px 22px;
+        border-radius: 16px;
+      }
 
-#scanBtn {
-  background: #1a8f3e;
-  color: white;
-  border: none;
-  transition: 0.2s;
-}
+      #preview {
+        max-height: 340px;
+      }
 
-#scanBtn:hover {
-  background: #157532;
-}
+      #controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
 
-input[type="file"] {
-  padding: 12px;
-  background: white;
-  border-radius: 10px;
-}
+      #fileInput,
+      #apiVersion,
+      #scanBtn {
+        width: 100%;
+      }
 
-@media (max-width: 600px) {
-  button, select, input[type="file"] {
-    width: 100%;
-    font-size: 20px;
-  }
-}
-/* --- GROSSE MOBILE-FREUNDLICHE BUTTONS --- */
-
-#scanBtn {
-    padding: 16px 32px !important;
-    font-size: 20px !important;
-    border-radius: 14px !important;
-    background: #1a8f39 !important;
-    color: white !important;
-    border: none !important;
-    cursor: pointer !important;
-    transition: 0.2s ease !important;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.25) !important;
-}
-
-#scanBtn:hover {
-    background: #27b84e !important;
-    transform: scale(1.05) !important;
-}
-
-#scanBtn:active {
-    transform: scale(0.97) !important;
-}
-
-/* Datei-Input größer */
-#fileInput {
-    padding: 14px !important;
-    font-size: 18px !important;
-    border-radius: 12px !important;
-    background-color: #ffffff !important;
-    cursor: pointer !important;
-}
-
-/* API Auswahl größer */
-#apiVersion {
-    padding: 14px !important;
-    font-size: 18px !important;
-    border-radius: 12px !important;
-    border: none !important;
-    background: #ffffff !important;
-    cursor: pointer !important;
-}
-
-/* Mobile Optimierung */
-@media (max-width: 600px) {
-    #scanBtn,
-    #fileInput,
-    #apiVersion {
-        width: 100% !important;
-        margin-top: 12px !important;
-        font-size: 20px !important;
-        padding: 18px !important;
+      #scanBtn {
+        justify-content: center;
+        display: inline-flex;
+      }
     }
-
-    #controls {
-        display: flex !important;
-        flex-direction: column !important;
-        gap: 12px !important;
-        width: 100% !important;
-    }
-}
-
   </style>
 </head>
+<body class="theme-robo">
+  <div>
+    <h1>ForRealScan</h1>
+    <p class="subtitle">Mit Veritas &amp; Robo – KI-Check für deine Bilder</p>
 
-<body>
-  <h1>ForRealScan</h1>
-  <p class="subtitle">Mit Veritas & Robo – KI-Check für deine Bilder</p>
+    <div id="box">
+      <div id="controls">
+        <input id="fileInput" type="file" accept="image/*" />
 
-  <div id="box">
-    <div id="controls">
-      <input id="fileInput" type="file" accept="image/*" />
-     <select id="apiVersion">
-  <option value="v2" selected>API-Version 2</option>
-  <!-- <option value="v3">API-Version 3</option> -->
-</select>
+        <!-- V2 ist Standard; V3 optional auswählbar -->
+        <select id="apiVersion">
+          <option value="v2" selected>API-Version 2 (Standard)</option>
+          <option value="v3">API-Version 3 (Test)</option>
+        </select>
 
-      <button id="scanBtn">Test starten</button>
-    </div>
-
-    <img id="preview" />
-
-    <div id="resultWrapper">
-      <img id="mascotImage" />
-      <div id="speakerName"></div>
-
-      <div id="progressContainer">
-        <div id="progressBar"></div>
+        <button id="scanBtn">🔍 Test starten</button>
       </div>
-      <div id="progressLabel"></div>
 
-      <div id="statusMessage"></div>
+      <img id="preview" alt="Bildvorschau" />
+
+      <div id="mascotSection">
+        <img
+          id="mascotImage"
+          src="/mascots/Veritas.png"
+          alt="Veritas & Robo Maskottchen"
+        />
+        <div id="mascotLabel">
+          <div id="mascotName">Veritas sagt:</div>
+          <div><span id="mascotSubtitle">Analyse bereit.</span></div>
+        </div>
+      </div>
+
+      <div class="progress-wrapper">
+        <div id="progressBarTrack">
+          <div id="progressBarFill"></div>
+        </div>
+        <div id="scoreText">KI-Wahrscheinlichkeit: –</div>
+        <div id="statusMessage">Bitte ein Bild auswählen und Analyse starten.</div>
+      </div>
+
       <div id="result"></div>
     </div>
   </div>
 
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const fileInput = document.getElementById("fileInput");
-      const previewImg = document.getElementById("preview");
-      const scanBtn = document.getElementById("scanBtn");
-      const apiVersion = document.getElementById("apiVersion");
+    const fileInput = document.getElementById("fileInput");
+    const previewImg = document.getElementById("preview");
+    const scanBtn = document.getElementById("scanBtn");
+    const apiSelect = document.getElementById("apiVersion");
 
-      const mascotImage = document.getElementById("mascotImage");
-      const speakerName = document.getElementById("speakerName");
-      const resultDiv = document.getElementById("result");
-      const statusMessage = document.getElementById("statusMessage");
+    const mascotImg = document.getElementById("mascotImage");
+    const mascotName = document.getElementById("mascotName");
+    const mascotSubtitle = document.getElementById("mascotSubtitle");
 
-      const progressContainer = document.getElementById("progressContainer");
-      const progressBar = document.getElementById("progressBar");
-      const progressLabel = document.getElementById("progressLabel");
+    const progressFill = document.getElementById("progressBarFill");
+    const scoreText = document.getElementById("scoreText");
+    const statusMessage = document.getElementById("statusMessage");
+    const resultDiv = document.getElementById("result");
 
-      let currentAnim = null;
+    let currentScore = 0;
 
-      function resetUI() {
-        mascotImage.style.display = "none";
-        speakerName.textContent = "";
+    function setThemeForScore(score) {
+      const body = document.body;
+      if (score < 50) {
+        body.classList.remove("theme-robo");
+        body.classList.add("theme-veritas");
+        mascotImg.src = "/mascots/Veritas.png";
+        mascotName.textContent = "Veritas sagt:";
+      } else {
+        body.classList.remove("theme-veritas");
+        body.classList.add("theme-robo");
+        mascotImg.src = "/mascots/Robo.png";
+        mascotName.textContent = "Robo erklärt:";
+      }
+    }
+
+    function setLoadingState(isLoading) {
+      if (isLoading) {
+        scanBtn.classList.add("loading");
+        scanBtn.textContent = "⏳ Analysiere …";
+        statusMessage.textContent = "Veritas & Robo analysieren dein Bild …";
+        statusMessage.classList.remove("error");
+        progressFill.classList.add("loading");
+        progressFill.style.width = "30%";
         resultDiv.innerHTML = "";
-        statusMessage.textContent = "";
-        progressContainer.style.display = "none";
-        progressBar.style.width = "0%";
-        progressLabel.textContent = "";
+      } else {
+        scanBtn.classList.remove("loading");
+        scanBtn.textContent = "🔍 Test starten";
+        progressFill.classList.remove("loading");
+      }
+      scanBtn.disabled = isLoading;
+      fileInput.disabled = isLoading;
+      apiSelect.disabled = isLoading;
+    }
+
+    fileInput.addEventListener("change", () => {
+      if (!fileInput.files.length) {
+        previewImg.style.display = "none";
+        return;
+      }
+      const file = fileInput.files[0];
+      const url = URL.createObjectURL(file);
+      previewImg.src = url;
+      previewImg.style.display = "block";
+      statusMessage.textContent = "Bereit zur Analyse. Klicke auf „Test starten“.";
+      statusMessage.classList.remove("error");
+    });
+
+    scanBtn.addEventListener("click", () => {
+      if (!fileInput.files.length) {
+        statusMessage.textContent = "Bitte zuerst ein Bild auswählen.";
+        statusMessage.classList.add("error");
+        return;
       }
 
-      fileInput.addEventListener("change", () => {
-        resetUI();
-        if (!fileInput.files.length) {
-          previewImg.style.display = "none";
-          return;
-        }
-        previewImg.src = URL.createObjectURL(fileInput.files[0]);
-        previewImg.style.display = "block";
-      });
+      const file = fileInput.files[0];
+      const reader = new FileReader();
 
-      function animateScore(target) {
-        if (currentAnim) cancelAnimationFrame(currentAnim);
-
-        let startValue = 0;
-        const duration = 900;
-        const startTime = performance.now();
-
-        function step(now) {
-          const t = Math.min(1, (now - startTime) / duration);
-          const value = Math.round(startValue + (target - startValue) * t);
-          progressBar.style.width = value + "%";
-          progressLabel.textContent = "KI-Wahrscheinlichkeit: " + value + "%";
-
-          if (t < 1) {
-            currentAnim = requestAnimationFrame(step);
-          }
-        }
-
-        currentAnim = requestAnimationFrame(step);
-      }
-
-      scanBtn.addEventListener("click", async () => {
-        resetUI();
-
-        if (!fileInput.files.length) {
-          statusMessage.textContent = "Bitte zuerst ein Bild auswählen.";
-          statusMessage.className = "error";
+      reader.onloadend = async () => {
+        const base64 = reader.result.split(",")[1];
+        if (!base64) {
+          statusMessage.textContent = "Fehler: Bild konnte nicht gelesen werden.";
+          statusMessage.classList.add("error");
           return;
         }
 
-        statusMessage.textContent = "Analyse läuft …";
+        setLoadingState(true);
 
-        const reader = new FileReader();
-        reader.onloadend = async () => {
-          const base64 = reader.result.split(",")[1];
+        const apiVersion = apiSelect.value || "v2";
+        const route =
+          apiVersion === "v3" ? "/api/analyze_v3" : "/api/analyze_v2";
 
-          const route =
-            apiVersion.value === "v3" ? "/api/analyze_v3" : "/api/analyze_v2";
-
+        try {
           const response = await fetch(route, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -399,49 +410,59 @@ input[type="file"] {
           });
 
           const data = await response.json();
-          console.log("API:", data);
 
-          if (!response.ok || typeof data.score !== "number") {
-            statusMessage.textContent = "Fehler: " + (data.error || "Keine valide Antwort");
-            statusMessage.className = "error";
+          if (!response.ok) {
+            const msg = data.error || "Unbekannter Fehler von der API.";
+            statusMessage.textContent = "Fehler: " + msg;
+            statusMessage.classList.add("error");
+            scoreText.textContent = "KI-Wahrscheinlichkeit: –";
+            progressFill.style.width = "0%";
             return;
           }
 
-          const score = Math.round(Math.max(0, Math.min(100, data.score)));
+          let score = Number(data.score);
+          if (!Number.isFinite(score)) score = 50;
+          score = Math.min(100, Math.max(0, Math.round(score)));
+          currentScore = score;
 
-          if (score < 50) {
-            document.body.classList.add("theme-veritas");
-            document.body.classList.remove("theme-robo");
-            mascotImage.src = "/mascots/Veritas.png";
-            speakerName.textContent = "Veritas sagt:";
-          } else {
-            document.body.classList.add("theme-robo");
-            document.body.classList.remove("theme-veritas");
-            mascotImage.src = "/mascots/Robo.png";
-            speakerName.textContent = "Robo erklärt:";
-          }
+          // Theme + Maskottchen
+          setThemeForScore(score);
 
-          mascotImage.style.display = "block";
-
-          progressContainer.style.display = "block";
-          animateScore(score);
-
-          if (Array.isArray(data.reasons)) {
-            let html = "<ul>";
-            for (const r of data.reasons) html += "<li>" + r + "</li>";
-            html += "</ul>";
-            resultDiv.innerHTML = html;
-          }
+          // Fortschrittsbalken
+          progressFill.classList.remove("loading");
+          progressFill.style.width = score + "%";
+          scoreText.textContent = "KI-Wahrscheinlichkeit: " + score + "%";
 
           statusMessage.textContent = "Analyse abgeschlossen.";
-        };
+          statusMessage.classList.remove("error");
 
-        reader.readAsDataURL(fileInput.files[0]);
-      });
+          // Gründe
+          const reasons = Array.isArray(data.reasons) ? data.reasons : [];
+          if (reasons.length) {
+            let html = "<ul>";
+            for (const r of reasons) {
+              html += "<li>" + String(r) + "</li>";
+            }
+            html += "</ul>";
+            resultDiv.innerHTML = html;
+          } else {
+            resultDiv.innerHTML =
+              "<p>Keine zusätzlichen Hinweise vorhanden.</p>";
+          }
+        } catch (err) {
+          console.error(err);
+          statusMessage.textContent =
+            "Serverfehler – Analyse derzeit nicht möglich.";
+          statusMessage.classList.add("error");
+          scoreText.textContent = "KI-Wahrscheinlichkeit: –";
+          progressFill.style.width = "0%";
+        } finally {
+          setLoadingState(false);
+        }
+      };
+
+      reader.readAsDataURL(file);
     });
   </script>
 </body>
 </html>
-
-
-
