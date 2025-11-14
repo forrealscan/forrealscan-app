@@ -1,4 +1,7 @@
-// api/analyze_v3.js – Premium mit o3-mini (Vision-Analyse, ohne 'temperature')
+// api/analyze_v3.js – Premium mit gpt-4o (stärkste Vision-Analyse, stabil)
+// Hinweis: o3-mini unterstützt aktuell keine Bild-Eingaben über /v1/chat/completions.
+// Für ForRealScan Premium nutzen wir daher gpt-4o für die beste Bildanalyse.
+
 export const config = { runtime: "edge" };
 
 export default async function handler(req) {
@@ -48,7 +51,7 @@ export default async function handler(req) {
       );
     }
 
-    // --- OpenAI-Aufruf mit o3-mini (Vision) ------------------------------
+    // --- OpenAI-Aufruf mit gpt-4o (Vision) ------------------------------
     const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -56,12 +59,16 @@ export default async function handler(req) {
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "o3-mini",
+        model: "gpt-4o",
+        temperature: 0,
         messages: [
           {
             role: "system",
             content:
-              "Du bist ein Experte für KI-Bilderkennung. Deine Aufgabe ist es, einzuschätzen, wie wahrscheinlich es ist, dass ein Bild von einer KI generiert oder stark mit KI bearbeitet wurde. Antworte ausschließlich mit einem JSON-Objekt {\"score\": Zahl, \"reasons\": [...] }."
+              "Du bist ForRealScan Premium – ein Experte für KI-Bilderkennung. " +
+              "Deine Aufgabe ist es, einzuschätzen, wie wahrscheinlich es ist, dass ein Bild von einer KI generiert " +
+              "oder stark mit KI bearbeitet wurde. Antworte ausschließlich mit einem JSON-Objekt der Form " +
+              '{"score": Zahl zwischen 0 und 100, "reasons": ["Grund 1", "Grund 2", ...]} – ohne zusätzlichen Text.'
           },
           {
             role: "user",
@@ -69,26 +76,29 @@ export default async function handler(req) {
               {
                 type: "text",
                 text:
-                  "Analysiere dieses Bild. Liefere score 0-100 + reasons als Liste. Nur JSON."
+                  "Analysiere dieses Bild. Schätze, wie hoch in Prozent die Wahrscheinlichkeit ist, dass das Bild von einer KI generiert " +
+                  "oder stark mit KI bearbeitet wurde. Gib score als Zahl zwischen 0 und 100 und reasons als kurze Stichpunkte an. " +
+                  "Antworte nur als JSON."
               },
               {
                 type: "image_url",
                 image_url: {
+                  // Wir schicken das Bild als Data-URL (Base64)
                   url: `data:image/jpeg;base64,${imageBase64}`,
                 },
               },
             ],
           },
-        ]
+        ],
       }),
     });
 
     if (!openaiRes.ok) {
       const errText = await openaiRes.text();
-      console.error("OpenAI o3-mini error:", openaiRes.status, errText);
+      console.error("OpenAI gpt-4o error:", openaiRes.status, errText);
       return new Response(
         JSON.stringify({
-          error: "OpenAI o3-mini request failed",
+          error: "OpenAI gpt-4o request failed",
           status: openaiRes.status,
           details: errText,
         }),
@@ -115,6 +125,7 @@ export default async function handler(req) {
       );
     }
 
+    // content kann String oder Array aus Textblöcken sein
     if (Array.isArray(content)) {
       const textPart = content.find((c) => c?.type === "text") || content[0];
       content = textPart?.text || "";
@@ -128,10 +139,11 @@ export default async function handler(req) {
     try {
       parsed = JSON.parse(content);
     } catch (err) {
-      console.error("JSON parse error:", content);
+      console.error("JSON parse error for OpenAI content:", content);
+      // Fallback: score 50, reason mit Roh-Content
       parsed = {
         score: 50,
-        reasons: ["Antwort konnte nicht geparst werden.", String(content)],
+        reasons: ["Antwort konnte nicht als JSON geparst werden.", String(content)],
       };
     }
 
@@ -152,7 +164,7 @@ export default async function handler(req) {
       }
     );
   } catch (err) {
-    console.error("Fehler in analyze_v3:", err);
+    console.error("Fehler in analyze_v3 (gpt-4o):", err);
     return new Response(
       JSON.stringify({
         error: "Fehler bei API-Aufruf",
