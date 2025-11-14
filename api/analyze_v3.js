@@ -1,16 +1,11 @@
-// api/analyze_v3.js – Premium-Analyse mit gpt-4o + erweiterten Details
-// Gibt zurück: { score, reasons, details }
+// analyze_v3.js - Fehlerfreie Ultra-Details Version
 
-export const config = { runtime: "edge" };
+export const config = { runtime: “edge” };
 
-export default async function handler(req) {
-  try {
-    if (req.method !== "POST") {
-      return new Response(JSON.stringify({ error: "Method not allowed" }), {
-        status: 405,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+export default async function handler(req) { try { if (req.method !==
+“POST”) { return new Response(JSON.stringify({ error: “Method not
+allowed” }), { status: 405, headers: { “Content-Type”:
+“application/json” }, }); }
 
     let body;
     try {
@@ -38,12 +33,11 @@ export default async function handler(req) {
       });
     }
 
-    // ---- GPT‑4o Vision-Analyse ----
     const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
+        "Authorization": `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
         model: "gpt-4o",
@@ -52,52 +46,29 @@ export default async function handler(req) {
           {
             role: "system",
             content:
-              "Du bist ForRealScan Premium – ein forensischer KI-Bildanalyst. " +
-              "Analysiere Bilder extrem präzise. Finde subtile KI-Artefakte, wie: " +
-              "Porenlosigkeit, Renderhaut, unnatürliche Texturglätte, Augen-Reflex-Symmetrie, " +
-              "Bokeh-Artefakte, KI-Noise, Hintergrundfehler, Haartextur-Symmetrie, " +
-              "Anatomie-Ungereimtheiten, Lichtphysik, Pupillenform, Übergangsunschärfen, " +
-              "Depth-of-Field-Konsistenz, Schärfeverteilung, JPEG-Kompressionsmuster, " +
-              "Hautmikrodetails, unnatürlich perfekte Proportionen." +
-              "Gib die Antwort ausschließlich im JSON-Format zurück."
+              "Du bist ForRealScan Premium – KI-Forensik. JSON-Ausgabe: {score, reasons, details}."
           },
           {
             role: "user",
             content: [
-              {
-                type: "text",
-                text:
-                  "Analysiere dieses Bild maximal forensisch. " +
-                  "Gib ein JSON zurück mit diesen Feldern: " +
-                  "{ "score": Zahl 0-100, " +
-                  ""reasons": [kurze Gründe], " +
-                  ""details": [lange technische Erklärungen der KI-Artefakte] }"
-              },
-              {
-                type: "image_url",
-                image_url: {
-                  url: `data:image/jpeg;base64,${imageBase64}`,
-                },
-              },
-            ],
-          },
-        ],
+              { type: "text", text: "Analysiere dieses Bild maximal forensisch. JSON zurückgeben." },
+              { type: "image_url", image_url: { url: "data:image/jpeg;base64," + imageBase64 } }
+            ]
+          }
+        ]
       }),
     });
 
     if (!openaiRes.ok) {
       const errText = await openaiRes.text();
-      return new Response(
-        JSON.stringify({
-          error: "OpenAI request failed",
-          status: openaiRes.status,
-          details: errText,
-        }),
-        {
-          status: 500,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      return new Response(JSON.stringify({
+        error: "OpenAI request failed",
+        status: openaiRes.status,
+        details: errText
+      }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     const completion = await openaiRes.json();
@@ -113,35 +84,23 @@ export default async function handler(req) {
     let parsed;
     try {
       parsed = JSON.parse(content);
-    } catch (err) {
+    } catch {
       parsed = {
         score: 50,
-        reasons: ["Konnte JSON nicht parsen."],
+        reasons: ["Konnte nicht geparst werden."],
         details: [content]
       };
     }
 
-    return new Response(
-      JSON.stringify({
-        score: parsed.score ?? 50,
-        reasons: parsed.reasons ?? [],
-        details: parsed.details ?? [],
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-  } catch (err) {
-    return new Response(
-      JSON.stringify({
-        error: "Fehler bei API-Aufruf",
-        details: String(err?.message || err),
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-  }
-}
+    return new Response(JSON.stringify({
+      score: parsed.score ?? 50,
+      reasons: Array.isArray(parsed.reasons) ? parsed.reasons : [],
+      details: Array.isArray(parsed.details) ? parsed.details : []
+    }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+
+} catch (err) { return new Response(JSON.stringify({ error: “Fehler bei
+API-Aufruf”, details: String(err?.message || err) }), { status: 500,
+headers: { “Content-Type”: “application/json” }, }); } }
