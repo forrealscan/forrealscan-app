@@ -1,4 +1,4 @@
-// api/analyze_v3.js – Premium mit o3-mini (Vision-Analyse, ohne 'reasoning'-Parameter)
+// api/analyze_v3.js – Premium mit o3-mini (Vision-Analyse, ohne 'temperature')
 export const config = { runtime: "edge" };
 
 export default async function handler(req) {
@@ -49,7 +49,6 @@ export default async function handler(req) {
     }
 
     // --- OpenAI-Aufruf mit o3-mini (Vision) ------------------------------
-    // Wir nutzen /v1/chat/completions mit Bild + Text.
     const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -62,8 +61,7 @@ export default async function handler(req) {
           {
             role: "system",
             content:
-              "Du bist ein Experte für KI-Bilderkennung. Deine Aufgabe ist es, einzuschätzen, wie wahrscheinlich es ist, dass ein Bild von einer KI generiert oder stark mit KI bearbeitet wurde. " +
-              "Antworte ausschließlich mit einem JSON-Objekt der Form {\"score\": Zahl zwischen 0 und 100, \"reasons\": [\"Grund 1\", \"Grund 2\", ...]} – ohne zusätzlichen Text.",
+              "Du bist ein Experte für KI-Bilderkennung. Deine Aufgabe ist es, einzuschätzen, wie wahrscheinlich es ist, dass ein Bild von einer KI generiert oder stark mit KI bearbeitet wurde. Antworte ausschließlich mit einem JSON-Objekt {\"score\": Zahl, \"reasons\": [...] }."
           },
           {
             role: "user",
@@ -71,20 +69,17 @@ export default async function handler(req) {
               {
                 type: "text",
                 text:
-                  "Analysiere dieses Bild. Schätze, wie hoch in Prozent die Wahrscheinlichkeit ist, dass das Bild von einer KI generiert oder stark mit KI bearbeitet wurde. " +
-                  "Gib score als Zahl zwischen 0 und 100 und reasons als kurze Stichpunkte an. Antworte nur als JSON.",
+                  "Analysiere dieses Bild. Liefere score 0-100 + reasons als Liste. Nur JSON."
               },
               {
                 type: "image_url",
                 image_url: {
-                  // Wir schicken das Bild als Data-URL (Base64)
                   url: `data:image/jpeg;base64,${imageBase64}`,
                 },
               },
             ],
           },
-        ],
-        temperature: 0,
+        ]
       }),
     });
 
@@ -106,7 +101,6 @@ export default async function handler(req) {
 
     const completion = await openaiRes.json();
 
-    // Inhalt aus der Antwort ziehen
     let content = completion?.choices?.[0]?.message?.content;
     if (!content) {
       return new Response(
@@ -121,7 +115,6 @@ export default async function handler(req) {
       );
     }
 
-    // content kann String oder Array aus Textblöcken sein
     if (Array.isArray(content)) {
       const textPart = content.find((c) => c?.type === "text") || content[0];
       content = textPart?.text || "";
@@ -135,11 +128,10 @@ export default async function handler(req) {
     try {
       parsed = JSON.parse(content);
     } catch (err) {
-      console.error("JSON parse error for OpenAI content:", content);
-      // Fallback: score 50, reason mit Roh-Content
+      console.error("JSON parse error:", content);
       parsed = {
         score: 50,
-        reasons: ["Antwort konnte nicht als JSON geparst werden.", String(content)],
+        reasons: ["Antwort konnte nicht geparst werden.", String(content)],
       };
     }
 
@@ -160,7 +152,7 @@ export default async function handler(req) {
       }
     );
   } catch (err) {
-    console.error("Fehler in analyze_v3 (o3-mini):", err);
+    console.error("Fehler in analyze_v3:", err);
     return new Response(
       JSON.stringify({
         error: "Fehler bei API-Aufruf",
