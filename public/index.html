@@ -646,8 +646,7 @@
         <!-- VERITAS -->
         <div id="veritas-panel" class="char-avatar active">
           <div class="char-img-wrap">
-            <!-- Passe den Pfad an deine Veritas-Grafik an -->
-            <img src="/veritas.png" alt="Veritas" class="char-img" />
+            <img src="/mascots/Veritas.png" alt="Veritas" class="char-img" />
           </div>
           <div>
             <div class="char-meta-title">Veritas</div>
@@ -661,8 +660,7 @@
         <!-- ROBO -->
         <div id="robo-panel" class="char-avatar">
           <div class="char-img-wrap">
-            <!-- Passe den Pfad an deine Robo-Grafik an -->
-            <img src="/robo.png" alt="Robo" class="char-img" />
+            <img src="/mascots/Robo.png" alt="Robo" class="char-img" />
           </div>
           <div>
             <div class="char-meta-title">Robo</div>
@@ -812,13 +810,8 @@
     }
 
     /**
-     * WICHTIG für dein Projekt:
-     * Diese Funktion kannst du aus deinem bestehenden API-Code aufrufen,
-     * sobald du einen Score (0–100) für den KI-Anteil berechnet hast.
-     *
-     * Beispiel in deinem Code:
-     *   const score = response.ai_score * 100; // falls 0–1
-     *   handleScanResult(score);
+     * WICHTIG:
+     * Diese Funktion wird aufgerufen, sobald wir vom Backend einen Score 0–100 haben.
      */
     function handleScanResult(score) {
       const clamped = Math.min(100, Math.max(0, Number(score) || 0));
@@ -836,7 +829,7 @@
       // Fortschrittsbalken
       barFillEl.style.width = clamped + "%";
 
-      // Pillentext & Farbe
+      // Pillentext & Kategorie
       let pillText, summaryIntro;
       if (clamped < 20) {
         pillText = "Sehr wahrscheinlich menschlich";
@@ -969,7 +962,7 @@
       resultSection.style.display = "none";
     });
 
-    // Scan starten (hier simuliert) ----------------------------------------
+    // Scan starten – echter API-Call auf /api/analyze_v3 ---------------------
 
     scanButton.addEventListener("click", () => {
       if (!currentFile) {
@@ -977,32 +970,32 @@
         return;
       }
 
-      // Button-Status
       scanButton.disabled = true;
       scanButton.innerHTML = "<span class='btn-icon'>⏳</span><span>Analysiere ...</span>";
 
-      /**
-       * Hier würdest du in deinem Projekt den echten API-Call machen.
-       *
-       * Beispiel-Struktur:
-       *
-       *   const formData = new FormData();
-       *   formData.append("file", currentFile);
-       *
-       *   fetch("/api/scan", { method: "POST", body: formData })
-       *     .then(res => res.json())
-       *     .then(data => {
-       *        const score = data.ai_score * 100; // falls 0–1
-       *        handleScanResult(score);
-       *     })
-       *     .catch(err => { ... })
-       *     .finally(() => { ... });
-       *
-       * Für jetzt: einfache Simulation mit einem zufälligen Score.
-       */
+      const formData = new FormData();
+      formData.append("file", currentFile);
 
-      simulateScanResult()
-        .then((score) => {
+      fetch("/api/analyze_v3", {
+        method: "POST",
+        body: formData,
+      })
+        .then((res) => {
+          if (!res.ok) {
+            throw new Error("HTTP-Fehler " + res.status);
+          }
+          return res.json();
+        })
+        .then((data) => {
+          // Versuche, den Score flexibel zu lesen
+          const raw =
+            data.ai_score ??
+            data.score ??
+            data.result ??
+            data.probability ??
+            0;
+
+          const score = raw <= 1 ? raw * 100 : raw;
           handleScanResult(score);
         })
         .catch((err) => {
@@ -1011,7 +1004,8 @@
         })
         .finally(() => {
           scanButton.disabled = false;
-          scanButton.innerHTML = "<span class='btn-icon'>⚡</span><span>Scan starten</span>";
+          scanButton.innerHTML =
+            "<span class='btn-icon'>⚡</span><span>Scan starten</span>";
         });
     });
 
@@ -1023,7 +1017,6 @@
       previewWrapper.style.display = "none";
       resultSection.style.display = "none";
 
-      // Standard-Text wiederherstellen
       analysisTextEl.textContent =
         "Hier siehst du gleich eine zusammengefasste Bewertung: Was spricht für echte Inhalte, was deutet eher auf KI hin?";
       analysisCharNameEl.textContent = "Veritas oder Robo";
@@ -1032,24 +1025,8 @@
       characterAnalysisText.textContent =
         "Lade ein Bild hoch und starte den Scan – Veritas oder Robo erklären dir dann Schritt für Schritt das Ergebnis.";
 
-      // Theme auf Veritas zurück
       applyTheme("veritas");
     });
-
-    // Simulation eines Scan-Ergebnisses (nur Demo) -------------------------
-
-    function simulateScanResult() {
-      return new Promise((resolve) => {
-        // Kleiner Fake-Delay für „Scan-Gefühl“
-        const delay = 600 + Math.random() * 600;
-        setTimeout(() => {
-          // Optional: leichte Tendenz zur Mitte (realistischer)
-          const base = Math.random();
-          const score = Math.round((base * 0.5 + Math.random() * 0.5) * 100);
-          resolve(score);
-        }, delay);
-      });
-    }
 
     // Initial: Veritas aktiv
     applyTheme("veritas");
