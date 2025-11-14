@@ -304,6 +304,69 @@
       margin-top: 3px;
     }
 
+    /* API-Version Toggle */
+
+    .version-toggle {
+      margin-top: 10px;
+      display: inline-flex;
+      padding: 3px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.03);
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      gap: 4px;
+    }
+
+    body.theme-robo .version-toggle {
+      background: rgba(10, 16, 40, 0.9);
+      border-color: rgba(128, 152, 255, 0.4);
+    }
+
+    .version-option {
+      position: relative;
+      border-radius: 999px;
+      padding: 5px 11px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: inherit;
+      opacity: 0.7;
+      transition: background var(--transition-fast), opacity var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+    }
+
+    .version-option input {
+      display: none;
+    }
+
+    .version-option span.badge {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      opacity: 0.7;
+    }
+
+    .version-option.active {
+      background: #ffffff;
+      opacity: 1;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+      transform: translateY(-1px);
+    }
+
+    body.theme-robo .version-option.active {
+      background: linear-gradient(135deg, #1b234f, #2f478a);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.7);
+    }
+
+    .version-label-main {
+      font-weight: 600;
+    }
+
+    .version-label-sub {
+      font-size: 0.7rem;
+      opacity: 0.75;
+    }
+
     /* Upload area */
 
     .upload-area {
@@ -366,7 +429,7 @@
       display: none;
     }
 
-    /* Preview */
+    /* Preview small */
 
     .preview-wrapper {
       margin-top: 12px;
@@ -406,6 +469,32 @@
     .preview-info-meta {
       opacity: 0.7;
       font-size: 0.78rem;
+    }
+
+    /* Preview large */
+
+    .preview-large {
+      margin-top: 14px;
+      display: none;
+      width: 100%;
+      max-height: 360px;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.16);
+      border: 1px solid rgba(0, 0, 0, 0.04);
+      background: #f5f5f5;
+    }
+
+    .preview-large img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    body.theme-robo .preview-large {
+      background: #050816;
+      border-color: rgba(128, 152, 255, 0.4);
     }
 
     /* Buttons */
@@ -690,6 +779,20 @@
         </p>
       </div>
 
+      <!-- API-Version Toggle -->
+      <div class="version-toggle" id="version-toggle">
+        <label class="version-option active">
+          <input type="radio" name="api-version" value="v2" checked />
+          <span class="version-label-main">Normal (V2)</span>
+          <span class="version-label-sub">gpt-4o-mini – stabil & schnell</span>
+        </label>
+        <label class="version-option">
+          <input type="radio" name="api-version" value="v3" />
+          <span class="version-label-main">Premium (V3)</span>
+          <span class="version-label-sub">beste Bildanalyse von OpenAI</span>
+        </label>
+      </div>
+
       <!-- Upload-Bereich -->
       <label for="image-input" class="upload-area">
         <div class="upload-icon">⬆</div>
@@ -702,7 +805,7 @@
         <input id="image-input" class="upload-input" type="file" accept="image/*" />
       </label>
 
-      <!-- Bildvorschau -->
+      <!-- kleine Bildvorschau (Name + Größe) -->
       <div id="preview-wrapper" class="preview-wrapper">
         <div class="preview-thumb">
           <img id="image-preview" src="" alt="Bildvorschau" />
@@ -711,6 +814,11 @@
           <div id="preview-name" class="preview-info-name"></div>
           <div id="preview-meta" class="preview-info-meta"></div>
         </div>
+      </div>
+
+      <!-- große Bildvorschau -->
+      <div id="preview-large" class="preview-large">
+        <img id="preview-large-img" src="" alt="Großansicht des Bildes" />
       </div>
 
       <!-- Buttons -->
@@ -769,13 +877,16 @@
   </main>
 
   <script>
-    // Elemente einsammeln
+    // DOM-Elemente
     const bodyEl = document.body;
     const imageInput = document.getElementById("image-input");
     const previewWrapper = document.getElementById("preview-wrapper");
     const previewImg = document.getElementById("image-preview");
     const previewName = document.getElementById("preview-name");
     const previewMeta = document.getElementById("preview-meta");
+    const previewLarge = document.getElementById("preview-large");
+    const previewLargeImg = document.getElementById("preview-large-img");
+
     const scanButton = document.getElementById("scan-button");
     const resetButton = document.getElementById("reset-button");
 
@@ -793,7 +904,11 @@
     const analysisCharNameEl = document.getElementById("analysis-character-name");
     const analysisCharSpeechEl = document.getElementById("analysis-character-speech");
 
+    const versionToggle = document.getElementById("version-toggle");
+    const versionOptions = versionToggle.querySelectorAll(".version-option");
+
     let currentFile = null;
+    let currentBase64 = null;
 
     // Hilfsfunktionen ---------------------------------------------------------
 
@@ -809,27 +924,48 @@
       return value.toFixed(1) + " " + units[i];
     }
 
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result || "";
+          const base64 = String(result).split(",")[1] || "";
+          resolve(base64);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function getSelectedVersion() {
+      const input = document.querySelector("input[name='api-version']:checked");
+      return input ? input.value : "v2";
+    }
+
+    // Optik Toggle aktiv/inaktiv
+    versionOptions.forEach((opt) => {
+      const input = opt.querySelector("input");
+      input.addEventListener("change", () => {
+        versionOptions.forEach((o) => o.classList.remove("active"));
+        opt.classList.add("active");
+      });
+    });
+
     /**
-     * WICHTIG:
-     * Diese Funktion wird aufgerufen, sobald wir vom Backend einen Score 0–100 haben.
+     * Wird aufgerufen, sobald ein Score 0–100 vorliegt.
      */
     function handleScanResult(score) {
       const clamped = Math.min(100, Math.max(0, Number(score) || 0));
       const isRobo = clamped >= 50;
 
-      // Theme umschalten (Yin/Yang)
       applyTheme(isRobo ? "robo" : "veritas");
 
-      // Ergebnisbereich anzeigen
       resultSection.style.display = "block";
 
-      // Prozentanzeige
       resultScoreEl.textContent = clamped.toFixed(1).replace(".0", "") + " %";
 
-      // Fortschrittsbalken
       barFillEl.style.width = clamped + "%";
 
-      // Pillentext & Kategorie
       let pillText, summaryIntro;
       if (clamped < 20) {
         pillText = "Sehr wahrscheinlich menschlich";
@@ -849,7 +985,6 @@
       }
       resultPillEl.textContent = pillText;
 
-      // Zusammenfassungstext
       resultSummaryEl.innerHTML =
         "<span class='result-summary-strong'>" +
         summaryIntro +
@@ -859,7 +994,6 @@
         pillText +
         "</strong> ein.";
 
-      // Analyse-Texte generieren
       const analysis = getAnalysisTexts(clamped);
       analysisTextEl.textContent = analysis.main;
       analysisCharNameEl.textContent = analysis.characterName;
@@ -935,7 +1069,9 @@
       const file = event.target.files && event.target.files[0];
       if (!file) {
         currentFile = null;
+        currentBase64 = null;
         previewWrapper.style.display = "none";
+        previewLarge.style.display = "none";
         return;
       }
 
@@ -943,70 +1079,76 @@
         alert("Bitte wähle eine Bilddatei (JPG, PNG, WebP, ...).");
         imageInput.value = "";
         currentFile = null;
+        currentBase64 = null;
         previewWrapper.style.display = "none";
+        previewLarge.style.display = "none";
         return;
       }
 
       currentFile = file;
+      currentBase64 = null;
 
       const reader = new FileReader();
       reader.onload = (e) => {
-        previewImg.src = e.target.result;
+        const url = e.target.result;
+        previewImg.src = url;
+        previewLargeImg.src = url;
+
         previewWrapper.style.display = "flex";
+        previewLarge.style.display = "block";
+
         previewName.textContent = file.name;
         previewMeta.textContent = formatBytes(file.size);
       };
       reader.readAsDataURL(file);
 
-      // Alte Ergebnisse ausblenden, wenn neues Bild gewählt wird
       resultSection.style.display = "none";
     });
 
-    // Scan starten – echter API-Call auf /api/analyze_v3 ---------------------
+    // Scan starten -----------------------------------------------------------
 
-    scanButton.addEventListener("click", () => {
+    scanButton.addEventListener("click", async () => {
       if (!currentFile) {
         alert("Bitte wähle zuerst ein Bild aus.");
         return;
       }
 
-      scanButton.disabled = true;
-      scanButton.innerHTML = "<span class='btn-icon'>⏳</span><span>Analysiere ...</span>";
+      try {
+        scanButton.disabled = true;
+        scanButton.innerHTML =
+          "<span class='btn-icon'>⏳</span><span>Analysiere ...</span>";
 
-      const formData = new FormData();
-      formData.append("file", currentFile);
+        if (!currentBase64) {
+          currentBase64 = await fileToBase64(currentFile);
+        }
 
-      fetch("/api/analyze_v3", {
-        method: "POST",
-        body: formData,
-      })
-        .then((res) => {
-          if (!res.ok) {
-            throw new Error("HTTP-Fehler " + res.status);
-          }
-          return res.json();
-        })
-        .then((data) => {
-          // Versuche, den Score flexibel zu lesen
-          const raw =
-            data.ai_score ??
-            data.score ??
-            data.result ??
-            data.probability ??
-            0;
+        const version = getSelectedVersion();
+        const endpoint = version === "v3" ? "/api/analyze_v3" : "/api/analyze_v2";
 
-          const score = raw <= 1 ? raw * 100 : raw;
-          handleScanResult(score);
-        })
-        .catch((err) => {
-          console.error(err);
-          alert("Beim Scan ist etwas schiefgelaufen. Bitte versuche es erneut.");
-        })
-        .finally(() => {
-          scanButton.disabled = false;
-          scanButton.innerHTML =
-            "<span class='btn-icon'>⚡</span><span>Scan starten</span>";
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ imageBase64: currentBase64 }),
         });
+
+        const data = await res.json().catch(() => null);
+
+        if (!res.ok || !data) {
+          console.error("API-Fehler:", res.status, data);
+          alert("Beim Scan ist etwas schiefgelaufen. Bitte versuche es erneut.");
+          return;
+        }
+
+        const rawScore = typeof data.score === "number" ? data.score : 50;
+        handleScanResult(rawScore);
+      } catch (err) {
+        console.error("Fehler beim Scan:", err);
+        alert("Beim Scan ist etwas schiefgelaufen. Bitte versuche es erneut.");
+      } finally {
+        scanButton.disabled = false;
+        scanButton.innerHTML =
+          "<span class='btn-icon'>⚡</span><span>Scan starten</span>";
+      }
     });
 
     // Reset --------------------------------------------------------------
@@ -1014,7 +1156,9 @@
     resetButton.addEventListener("click", () => {
       imageInput.value = "";
       currentFile = null;
+      currentBase64 = null;
       previewWrapper.style.display = "none";
+      previewLarge.style.display = "none";
       resultSection.style.display = "none";
 
       analysisTextEl.textContent =
@@ -1028,7 +1172,7 @@
       applyTheme("veritas");
     });
 
-    // Initial: Veritas aktiv
+    // Initial
     applyTheme("veritas");
   </script>
 </body>
