@@ -3,1588 +3,1056 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ForRealScan V3 Premium – KI-Anteil erkennen</title>
+  <title>ForRealScan Premium – KI-Scan</title>
 
   <style>
-    /* =========================
-       Grund-Setup & Variablen
-       ========================= */
-    :root {
-      --bg: #050608;
-      --bg-soft: rgba(10, 12, 18, 0.94);
-      --bg-softer: rgba(18, 22, 32, 0.96);
-      --accent: #47d18c;
-      --accent-soft: rgba(71, 209, 140, 0.16);
-      --accent-strong: #29b06e;
-      --text-main: #f5f5f7;
-      --text-soft: #b9c0d0;
-      --border-subtle: rgba(255, 255, 255, 0.06);
-      --shadow-soft: 0 22px 45px rgba(0, 0, 0, 0.65);
-      --radius-xl: 24px;
-      --radius-full: 999px;
-      --danger: #ff4b6a;
-      --warning: #ffb347;
-      --info: #3e9dff;
-      --font-main: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
-        "Inter", "Segoe UI", sans-serif;
-    }
-
-    /* Veritas = Natur-Theme */
-    body.theme-veritas {
-      --bg: radial-gradient(circle at top, #071a14 0, #020507 40%, #000 100%);
-      --bg-soft: rgba(6, 22, 16, 0.94);
-      --bg-softer: rgba(9, 32, 23, 0.96);
-      --accent: #6ee7b7;
-      --accent-soft: rgba(110, 231, 183, 0.16);
-      --accent-strong: #34d399;
-      --text-main: #fefdfb;
-      --text-soft: #c4d3cd;
-      --border-subtle: rgba(150, 230, 195, 0.26);
-      --shadow-soft: 0 22px 45px rgba(0, 0, 0, 0.8);
-    }
-
-    /* Robo = Metall/Future-Theme */
-    body.theme-robo {
-      --bg: radial-gradient(circle at top, #262a3b 0, #050712 40%, #000 100%);
-      --bg-soft: rgba(15, 18, 35, 0.96);
-      --bg-softer: rgba(13, 16, 30, 0.98);
-      --accent: #7dd3ff;
-      --accent-soft: rgba(125, 211, 255, 0.16);
-      --accent-strong: #38bdf8;
-      --text-main: #f9fafb;
-      --text-soft: #a0aec0;
-      --border-subtle: rgba(148, 163, 184, 0.45);
-      --shadow-soft: 0 26px 60px rgba(0, 0, 0, 0.95);
-    }
-
     * {
       box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --transition-fast: 0.25s ease;
+      --radius-lg: 18px;
+      --radius-xl: 28px;
     }
 
     body {
-      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       min-height: 100vh;
-      font-family: var(--font-main);
-      color: var(--text-main);
-      background: var(--bg);
-      display: flex;
-      justify-content: center;
-      align-items: stretch;
-      padding: 16px;
-    }
-
-    .app-shell {
-      width: 100%;
-      max-width: 1120px;
-      margin-inline: auto;
-      background: linear-gradient(
-        135deg,
-        rgba(255, 255, 255, 0.02),
-        rgba(255, 255, 255, 0.03)
-      );
-      border-radius: 28px;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      box-shadow: var(--shadow-soft);
-      backdrop-filter: blur(26px) saturate(140%);
-      padding: 18px 16px 20px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      align-items: stretch;
+      justify-content: flex-start;
+      padding: 20px;
+      color: #0b1020;
+      background: radial-gradient(circle at top left, #f5f8ff 0, #e6f0ff 35%, #f8f8f8 100%);
+      transition: background 0.6s ease, color 0.6s ease;
     }
 
-    @media (min-width: 720px) {
-      .app-shell {
-        padding: 20px 22px 24px;
-      }
+    /* THEMES ----------------------------------------------------- */
+
+    body.theme-veritas {
+      background: radial-gradient(circle at top left, #f8fff7 0, #e6f7e9 35%, #f8f8f8 100%);
+      color: #102218;
     }
 
-    header.app-header {
+    body.theme-robo {
+      background: radial-gradient(circle at top left, #050816 0, #050816 60%, #0b1020 100%);
+      color: #eef3ff;
+    }
+
+    body.theme-robo .card {
+      background: rgba(10, 16, 35, 0.94);
+      border-color: rgba(128, 152, 255, 0.3);
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+    }
+
+    body.theme-veritas .card {
+      background: rgba(255, 255, 255, 0.92);
+      border-color: rgba(96, 149, 106, 0.35);
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.08);
+    }
+
+    /* LAYOUT ----------------------------------------------------- */
+
+    header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
+      gap: 16px;
+      margin-bottom: 20px;
     }
 
-    .logo-group {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .logo-mark {
-      width: 32px;
-      height: 32px;
-      border-radius: 12px;
-      background: radial-gradient(circle at 20% 0, #fff 0, transparent 36%),
-        radial-gradient(circle at 80% 100%, var(--accent) 0, transparent 40%),
-        linear-gradient(135deg, #020617, #020617 40%, #0f172a 100%);
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 0 18px rgba(0, 0, 0, 0.6);
-    }
-
-    .logo-mark::before,
-    .logo-mark::after {
-      content: "";
-      position: absolute;
-      inset: 25%;
-      border-radius: 50%;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-    }
-
-    .logo-mark::after {
-      inset: 40%;
-      border-color: var(--accent-soft);
-    }
-
-    .logo-text-main {
+    .brand {
       display: flex;
       flex-direction: column;
-      gap: 0;
-    }
-
-    .logo-title {
-      font-size: 18px;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .logo-title span.accent {
-      color: var(--accent);
-    }
-
-    .logo-subtitle {
-      font-size: 11px;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: var(--text-soft);
-    }
-
-    .badge-premium {
-      padding: 3px 8px;
-      border-radius: 999px;
-      background: radial-gradient(circle at 0 0, #facc15 0, transparent 48%),
-        rgba(15, 23, 42, 0.95);
-      border: 1px solid rgba(250, 204, 21, 0.7);
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      display: inline-flex;
-      align-items: center;
       gap: 4px;
     }
 
-    .badge-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: #f97316;
-      box-shadow: 0 0 12px rgba(248, 113, 113, 0.9);
-    }
-
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .chip {
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.5);
-      padding: 4px 9px;
-      font-size: 11px;
-      color: var(--text-soft);
-      background: rgba(15, 23, 42, 0.7);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      white-space: nowrap;
-    }
-
-    .chip-status-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: #22c55e;
-      box-shadow: 0 0 10px rgba(34, 197, 94, 0.9);
-    }
-
-    .ghost-button {
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.3);
-      padding: 6px 10px;
-      font-size: 11px;
+    .brand-title {
+      font-size: 1.2rem;
+      letter-spacing: 0.15em;
       text-transform: uppercase;
-      letter-spacing: 0.12em;
-      background: rgba(15, 23, 42, 0.65);
-      color: var(--text-soft);
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
+      font-weight: 700;
     }
 
-    .ghost-button span.icon {
-      font-size: 13px;
-    }
-
-    /* =========================
-       Theme Toggle (Veritas / Robo)
-       ========================= */
-
-    .hero {
-      display: grid;
-      grid-template-columns: minmax(0, 1.3fr) minmax(0, 1.1fr);
-      gap: 16px;
-      align-items: center;
-    }
-
-    @media (max-width: 840px) {
-      .hero {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
-
-    .hero-main {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .theme-toggle {
-      display: inline-grid;
-      grid-template-columns: 1fr 1fr;
-      border-radius: var(--radius-full);
-      padding: 4px;
-      background: radial-gradient(circle at 10% 0, rgba(148, 163, 184, 0.2) 0, transparent 40%),
-        rgba(15, 23, 42, 0.95);
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
-      max-width: 340px;
-    }
-
-    .theme-btn {
-      border: none;
-      border-radius: 999px;
-      padding: 7px 10px 8px;
-      font-size: 11px;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--text-soft);
-      background: transparent;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 2px;
-      transition: all 0.16s ease-out;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .theme-btn span.label {
-      font-weight: 600;
-      font-size: 11px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .theme-btn span.mood {
-      font-size: 10px;
-      opacity: 0.8;
-    }
-
-    .theme-btn .emoji {
-      font-size: 13px;
-    }
-
-    .theme-btn.active {
-      color: #0b1120;
-      background: linear-gradient(135deg, var(--accent), var(--accent-strong));
-      box-shadow: 0 12px 25px rgba(15, 118, 110, 0.65);
-    }
-
-    .theme-btn.active span.mood {
-      opacity: 0.9;
-    }
-
-    .hero-heading {
-      margin-top: 8px;
-    }
-
-    .hero-title {
-      font-size: clamp(24px, 3.1vw, 30px);
-      line-height: 1.15;
-      letter-spacing: 0.02em;
-    }
-
-    .hero-title span.highlight {
-      background: linear-gradient(120deg, var(--accent), #fbbf24);
-      -webkit-background-clip: text;
-      color: transparent;
-    }
-
-    .hero-subtitle {
-      margin-top: 6px;
-      font-size: 13px;
-      color: var(--text-soft);
-      max-width: 470px;
-    }
-
-    .hero-pills {
-      margin-top: 10px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .pill {
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      padding: 4px 8px;
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      color: var(--text-soft);
-      background: rgba(15, 23, 42, 0.82);
-    }
-
-    .pill.accented {
-      border-color: var(--accent);
-      background: var(--accent-soft);
-      color: var(--accent-strong);
-    }
-
-    /* =========================
-       Yin-Yang Visual Card
-       ========================= */
-
-    .yin-yang-card {
-      border-radius: 999px;
-      background: radial-gradient(circle at 0 0, rgba(74, 222, 128, 0.18) 0, transparent 40%),
-        radial-gradient(circle at 100% 100%, rgba(96, 165, 250, 0.26) 0, transparent 40%),
-        linear-gradient(135deg, var(--bg-soft), var(--bg-softer));
-      border: 1px solid rgba(148, 163, 184, 0.5);
-      padding: 10px 10px 10px 14px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .yin-yang-card::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background:
-        radial-gradient(circle at 25% 0, rgba(22, 101, 52, 0.35), transparent 55%),
-        radial-gradient(circle at 75% 100%, rgba(15, 23, 42, 0.9), transparent 50%);
-      mix-blend-mode: soft-light;
-      opacity: 0.75;
-      pointer-events: none;
-    }
-
-    body.theme-robo .yin-yang-card::before {
-      background:
-        radial-gradient(circle at 25% 0, rgba(59, 130, 246, 0.4), transparent 55%),
-        radial-gradient(circle at 75% 100%, rgba(15, 23, 42, 0.95), transparent 52%);
-    }
-
-    .yin-yang-avatars {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 999px;
-      position: relative;
-      overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, 0.4);
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.9);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-    }
-
-    .avatar.veritas {
-      background: radial-gradient(circle at 30% 0, #dcfce7 0, transparent 35%),
-        linear-gradient(145deg, #15803d 0, #052e16 100%);
-    }
-
-    .avatar.robo {
-      background: radial-gradient(circle at 70% 0, #e5e7eb 0, transparent 40%),
-        linear-gradient(140deg, #1d4ed8 0, #020617 100%);
-    }
-
-    .avatar.veritas::after,
-    .avatar.robo::after {
-      content: "";
-      position: absolute;
-      inset: 22%;
-      border-radius: 50%;
-      border: 1px solid rgba(15, 23, 42, 0.5);
+    .brand-subtitle {
+      font-size: 0.9rem;
       opacity: 0.7;
     }
 
-    .yin-yang-divider {
-      width: 1px;
-      height: 32px;
-      background: linear-gradient(
-        180deg,
-        transparent 0,
-        rgba(148, 163, 184, 0.9) 50%,
-        transparent 100%
-      );
-      position: relative;
-      z-index: 1;
-    }
-
-    .yin-yang-text {
-      position: relative;
-      z-index: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .yin-yang-text .label {
-      font-size: 10px;
-      letter-spacing: 0.18em;
+    .badge-premium {
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 0.8rem;
       text-transform: uppercase;
-      color: var(--text-soft);
+      letter-spacing: 0.12em;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(212, 175, 55, 0.5));
+      color: #3a2b00;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
     }
 
-    .yin-yang-text .line {
-      font-size: 11px;
-      color: var(--text-main);
+    body.theme-robo .badge-premium {
+      border-color: rgba(132, 159, 255, 0.5);
+      background: linear-gradient(135deg, rgba(23, 32, 74, 0.8), rgba(120, 162, 255, 0.6));
+      color: #f5f7ff;
     }
 
-    /* =========================
-       Main Content: Scan Grid
-       ========================= */
-
-    .main-grid {
+    main {
       display: grid;
-      grid-template-columns: minmax(0, 1.25fr) minmax(0, 1.05fr);
-      gap: 16px;
-      align-items: flex-start;
-      margin-top: 6px;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.3fr);
+      gap: 22px;
+      max-width: 1120px;
+      margin: 0 auto;
+      width: 100%;
     }
 
-    @media (max-width: 960px) {
-      .main-grid {
+    @media (max-width: 880px) {
+      main {
         grid-template-columns: minmax(0, 1fr);
+      }
+
+      body {
+        padding: 14px;
+      }
+
+      header {
+        flex-direction: column;
+        align-items: flex-start;
       }
     }
 
-    .panel {
+    .card {
       border-radius: var(--radius-xl);
-      background: var(--bg-soft);
-      border: 1px solid var(--border-subtle);
-      padding: 14px 14px 16px;
-      box-shadow: 0 18px 36px rgba(0, 0, 0, 0.7);
+      border: 1px solid rgba(0, 0, 0, 0.04);
+      background: rgba(255, 255, 255, 0.95);
+      padding: 18px 18px 20px;
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(18px);
     }
 
-    .panel-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-      gap: 10px;
-    }
+    /* CHARACTER PANEL -------------------------------------------- */
 
-    .panel-title {
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.16em;
-      color: var(--text-soft);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .panel-title-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--accent);
-      box-shadow: 0 0 10px rgba(16, 185, 129, 0.9);
-    }
-
-    .panel-subtitle {
-      font-size: 11px;
-      color: var(--text-soft);
-    }
-
-    .badge-mini {
-      border-radius: 999px;
-      padding: 3px 7px;
-      font-size: 10px;
-      background: rgba(15, 23, 42, 0.9);
-      border: 1px solid rgba(148, 163, 184, 0.5);
-      color: var(--text-soft);
-    }
-
-    /* Form Elements */
-    form#scanForm {
+    .character-panel {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 14px;
+      position: relative;
+      min-height: 260px;
     }
 
-    .field-group {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
+    .char-bg-ring {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.4;
+      mix-blend-mode: soft-light;
+      background: radial-gradient(circle at top, rgba(255, 255, 255, 0.7) 0, transparent 50%),
+                  radial-gradient(circle at center, rgba(144, 238, 144, 0.55) 0, transparent 52%);
+      transition: opacity 0.6s ease, transform 0.6s ease;
     }
 
-    .field-label-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 6px;
+    body.theme-robo .char-bg-ring {
+      opacity: 0.9;
+      background: radial-gradient(circle at top, rgba(120, 162, 255, 0.6) 0, transparent 50%),
+                  radial-gradient(circle at center, rgba(3, 252, 231, 0.45) 0, transparent 55%);
+      transform: translateY(-8px);
     }
 
-    .field-label {
-      font-size: 11px;
+    .char-switch-label {
+      font-size: 0.78rem;
+      letter-spacing: 0.18em;
       text-transform: uppercase;
-      letter-spacing: 0.16em;
-      color: var(--text-soft);
+      opacity: 0.7;
     }
 
-    .field-hint {
-      font-size: 11px;
-      color: var(--text-soft);
+    .char-yinyang {
+      font-size: 0.86rem;
       opacity: 0.85;
     }
 
-    .mode-toggle {
-      display: inline-flex;
-      border-radius: 999px;
-      padding: 2px;
-      background: rgba(15, 23, 42, 0.95);
-      border: 1px solid rgba(148, 163, 184, 0.45);
-      gap: 2px;
-    }
-
-    .mode-btn {
-      border-radius: 999px;
-      border: none;
-      background: transparent;
-      padding: 5px 10px;
-      font-size: 10px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--text-soft);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-
-    .mode-btn span.dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 999px;
-    }
-
-    .mode-btn.standard span.dot {
-      background: #a3e635;
-    }
-
-    .mode-btn.deep span.dot {
-      background: #f97316;
-    }
-
-    .mode-btn.active {
-      background: radial-gradient(circle at 0 0, rgba(255, 255, 255, 0.16) 0, transparent 40%),
-        var(--accent-soft);
-      color: var(--accent-strong);
-    }
-
-    .field-row {
-      display: grid;
-      grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-      gap: 8px;
-    }
-
-    @media (max-width: 720px) {
-      .field-row {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
-
-    .select-wrapper {
-      position: relative;
-    }
-
-    select,
-    input[type="text"],
-    input[type="url"],
-    textarea {
-      width: 100%;
-      border-radius: 14px;
-      border: 1px solid rgba(148, 163, 184, 0.5);
-      padding: 7px 10px;
-      font-size: 12px;
-      font-family: inherit;
-      background: rgba(15, 23, 42, 0.9);
-      color: var(--text-main);
-      outline: none;
-      transition: border-color 0.16s ease, box-shadow 0.16s ease,
-        background 0.16s ease;
-    }
-
-    select {
-      appearance: none;
-      -webkit-appearance: none;
-      padding-right: 28px;
-    }
-
-    .select-wrapper::after {
-      content: "▾";
-      position: absolute;
-      right: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 10px;
-      color: var(--text-soft);
-      pointer-events: none;
-    }
-
-    textarea {
-      min-height: 54px;
-      resize: vertical;
-    }
-
-    select:focus,
-    input:focus,
-    textarea:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 1px rgba(45, 212, 191, 0.35);
-      background: rgba(15, 23, 42, 0.98);
-    }
-
-    /* Upload Zone */
-
-    .upload-zone {
-      border-radius: 18px;
-      border: 1px dashed rgba(148, 163, 184, 0.7);
-      background: radial-gradient(circle at 0 0, rgba(148, 163, 184, 0.16) 0, transparent 45%),
-        rgba(15, 23, 42, 0.88);
-      padding: 12px;
+    .char-avatars {
       display: flex;
       gap: 10px;
-      align-items: center;
-      cursor: pointer;
-      transition: border-color 0.2s ease, background 0.2s ease,
-        transform 0.08s ease;
+      margin-top: 8px;
+      margin-bottom: 10px;
     }
 
-    .upload-zone.dragover {
-      border-style: solid;
-      border-color: var(--accent);
-      background: radial-gradient(circle at 0 0, rgba(45, 212, 191, 0.3) 0, transparent 50%),
-        rgba(15, 23, 42, 0.98);
-      transform: translateY(-1px);
-    }
-
-    .upload-icon {
-      width: 34px;
-      height: 34px;
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.7);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-      background: rgba(15, 23, 42, 0.96);
-    }
-
-    .upload-text {
+    .char-avatar {
       flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .upload-text-main {
-      font-size: 12px;
-      color: var(--text-main);
-    }
-
-    .upload-text-sub {
-      font-size: 11px;
-      color: var(--text-soft);
-    }
-
-    .upload-button-inline {
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.7);
-      padding: 4px 9px;
-      font-size: 11px;
-      background: rgba(15, 23, 42, 0.96);
-      color: var(--text-soft);
-      white-space: nowrap;
-    }
-
-    input[type="file"] {
-      display: none;
-    }
-
-    .scan-footer {
+      padding: 10px;
+      border-radius: var(--radius-lg);
       display: flex;
       align-items: center;
-      justify-content: space-between;
       gap: 10px;
-      margin-top: 4px;
-      flex-wrap: wrap;
+      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid transparent;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.06);
+      opacity: 0.4;
+      transform: translateY(4px) scale(0.96);
+      transition: opacity var(--transition-fast), transform var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
     }
 
-    .primary-button {
+    .char-avatar.active {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      border-color: rgba(95, 178, 120, 0.85);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(209, 240, 216, 0.98));
+    }
+
+    body.theme-robo .char-avatar {
+      background: rgba(8, 12, 30, 0.9);
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.7);
+    }
+
+    body.theme-robo .char-avatar.active {
+      border-color: rgba(132, 159, 255, 0.85);
+      background: linear-gradient(135deg, rgba(16, 24, 56, 0.98), rgba(39, 65, 135, 0.98));
+    }
+
+    .char-img-wrap {
+      width: 52px;
+      height: 52px;
       border-radius: 999px;
-      border: none;
-      padding: 9px 20px;
-      font-size: 12px;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      background: linear-gradient(135deg, var(--accent-strong), var(--accent));
-      color: #020617;
-      display: inline-flex;
+      overflow: hidden;
+      flex-shrink: 0;
+      background: radial-gradient(circle at top left, #ffffff, #e4f4e6);
+      display: flex;
       align-items: center;
-      gap: 10px;
-      cursor: pointer;
-      box-shadow: 0 14px 40px rgba(16, 185, 129, 0.65);
-      min-width: 160px;
       justify-content: center;
     }
 
-    .primary-button span.icon {
-      font-size: 14px;
+    body.theme-robo .char-img-wrap {
+      background: radial-gradient(circle at top left, #1b1f3b, #0a0f26);
     }
 
-    .primary-button:active {
-      transform: translateY(1px);
-      box-shadow: 0 10px 24px rgba(16, 185, 129, 0.7);
-    }
-
-    .scan-meta {
-      font-size: 11px;
-      color: var(--text-soft);
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .scan-meta span {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .scan-meta-dot {
-      width: 4px;
-      height: 4px;
-      border-radius: 999px;
-      background: rgba(148, 163, 184, 0.9);
-    }
-
-    /* =========================
-       Results Panel
-       ========================= */
-
-    .result-main {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .result-summary {
-      display: grid;
-      grid-template-columns: auto minmax(0, 1fr);
-      gap: 10px;
-      align-items: center;
-    }
-
-    @media (max-width: 520px) {
-      .result-summary {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
-
-    .ring {
-      width: 70px;
-      height: 70px;
-      border-radius: 999px;
-      background:
-        conic-gradient(from 270deg, var(--accent) 0 40%, rgba(148, 163, 184, 0.4) 40% 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-    }
-
-    .ring::before {
-      content: "";
-      position: absolute;
-      inset: 8px;
+    .char-img {
+      width: 46px;
+      height: 46px;
+      object-fit: cover;
       border-radius: inherit;
-      background: radial-gradient(circle at 30% 0, rgba(248, 250, 252, 0.2), transparent 40%),
-        rgba(15, 23, 42, 0.95);
     }
 
-    .ring-value {
+    .char-meta-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .char-meta-role {
+      font-size: 0.8rem;
+      opacity: 0.7;
+    }
+
+    .char-meta-note {
+      font-size: 0.8rem;
+      margin-top: 4px;
+      opacity: 0.9;
+    }
+
+    .char-analysis-bubble {
+      margin-top: 8px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      font-size: 0.88rem;
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid rgba(0, 0, 0, 0.04);
+      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.06);
       position: relative;
       z-index: 1;
-      font-size: 16px;
-      font-weight: 600;
     }
 
-    .result-text {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
+    body.theme-robo .char-analysis-bubble {
+      background: radial-gradient(circle at top left, rgba(14, 22, 60, 0.96), rgba(8, 15, 40, 0.98));
+      border-color: rgba(129, 152, 255, 0.4);
     }
 
-    .result-label {
-      font-size: 11px;
+    .char-analysis-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
       letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: var(--text-soft);
+      opacity: 0.75;
+      margin-bottom: 4px;
     }
 
-    .result-title {
-      font-size: 15px;
-    }
-
-    .result-chip-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 2px;
-    }
-
-    .result-chip {
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.6);
-      padding: 3px 8px;
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: var(--text-soft);
-    }
-
-    .result-chip.warning {
-      border-color: var(--warning);
-      color: var(--warning);
-    }
-
-    .result-chip.danger {
-      border-color: var(--danger);
-      color: var(--danger);
-    }
-
-    .result-chip.info {
-      border-color: var(--info);
-      color: var(--info);
-    }
-
-    .result-body {
-      font-size: 12px;
-      color: var(--text-soft);
+    .char-analysis-text {
+      font-size: 0.9rem;
       line-height: 1.5;
     }
 
-    .accordion {
-      border-radius: 16px;
-      border: 1px solid rgba(148, 163, 184, 0.5);
-      background: rgba(15, 23, 42, 0.96);
-      overflow: hidden;
+    /* SCAN PANEL ------------------------------------------------- */
+
+    .scan-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
     }
 
-    .accordion-header {
-      padding: 7px 10px;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.13em;
-      color: var(--text-soft);
+    .scan-header-title {
+      font-size: 1.4rem;
+      font-weight: 650;
+    }
+
+    .scan-header-sub {
+      font-size: 0.9rem;
+      opacity: 0.8;
+      margin-top: 3px;
+    }
+
+    /* Upload area */
+
+    .upload-area {
+      margin-top: 10px;
+      padding: 14px;
+      border-radius: 18px;
+      border: 1px dashed rgba(120, 135, 150, 0.4);
+      background: rgba(255, 255, 255, 0.95);
       display: flex;
-      justify-content: space-between;
+      gap: 14px;
       align-items: center;
       cursor: pointer;
-      user-select: none;
+      transition: border-color var(--transition-fast), background var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
     }
 
-    .accordion-header span.icon {
-      font-size: 12px;
+    .upload-area:hover {
+      border-color: rgba(96, 149, 106, 0.9);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+      transform: translateY(-1px);
     }
 
-    .accordion-body {
-      max-height: 160px;
-      overflow: auto;
-      padding: 7px 10px 9px;
-      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
-        Consolas, "Liberation Mono", "Courier New", monospace;
-      font-size: 11px;
-      color: #e5e7eb;
-      border-top: 1px solid rgba(148, 163, 184, 0.5);
+    body.theme-robo .upload-area {
+      background: rgba(8, 13, 35, 0.96);
+      border-color: rgba(120, 140, 190, 0.6);
+    }
+
+    body.theme-robo .upload-area:hover {
+      border-color: rgba(137, 161, 255, 0.95);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8);
+    }
+
+    .upload-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      background: radial-gradient(circle at top left, #fff7e0, #f3d889);
+      flex-shrink: 0;
+    }
+
+    body.theme-robo .upload-icon {
+      background: radial-gradient(circle at top left, #202543, #5f7cff);
+    }
+
+    .upload-text-main {
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+
+    .upload-text-sub {
+      font-size: 0.8rem;
+      opacity: 0.7;
+      margin-top: 3px;
+    }
+
+    .upload-input {
       display: none;
     }
 
-    .accordion.open .accordion-body {
+    /* Preview */
+
+    .preview-wrapper {
+      margin-top: 12px;
+      display: none;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .preview-thumb {
+      width: 70px;
+      height: 70px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      background: #f2f2f2;
+      flex-shrink: 0;
+    }
+
+    .preview-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
       display: block;
     }
 
-    .history-list {
-      margin-top: 6px;
-      border-radius: 12px;
-      border: 1px dashed rgba(148, 163, 184, 0.5);
-      padding: 6px 8px;
-      max-height: 110px;
-      overflow: auto;
-      font-size: 11px;
-      color: var(--text-soft);
-    }
-
-    .history-item {
-      display: flex;
-      justify-content: space-between;
-      gap: 6px;
-      padding: 3px 0;
-      border-bottom: 1px dashed rgba(15, 23, 42, 0.8);
-    }
-
-    .history-item:last-child {
-      border-bottom: none;
-    }
-
-    .history-left {
+    .preview-info {
       display: flex;
       flex-direction: column;
-      gap: 1px;
+      gap: 4px;
+      font-size: 0.85rem;
     }
 
-    .history-type {
-      text-transform: uppercase;
-      letter-spacing: 0.15em;
+    .preview-info-name {
+      font-weight: 500;
     }
 
-    .history-meta {
-      font-size: 10px;
-      opacity: 0.8;
+    .preview-info-meta {
+      opacity: 0.7;
+      font-size: 0.78rem;
     }
 
-    .history-score {
-      font-weight: 600;
+    /* Buttons */
+
+    .scan-actions {
+      margin-top: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: flex-start;
     }
 
-    /* =========================
-       Footer Status
-       ========================= */
+    .btn {
+      border-radius: 999px;
+      border: none;
+      padding: 9px 18px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      transition: background var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast), opacity 0.2s ease;
+    }
 
-    .app-footer {
-      margin-top: 6px;
-      padding-top: 8px;
-      border-top: 1px solid rgba(148, 163, 184, 0.3);
+    .btn-primary {
+      background: linear-gradient(135deg, #5fb279, #3d8c5a);
+      color: white;
+      box-shadow: 0 14px 32px rgba(87, 158, 115, 0.45);
+    }
+
+    .btn-primary:hover:enabled {
+      transform: translateY(-1px);
+      box-shadow: 0 18px 40px rgba(87, 158, 115, 0.6);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.7;
+      cursor: default;
+      box-shadow: none;
+      transform: none;
+    }
+
+    body.theme-robo .btn-primary {
+      background: linear-gradient(135deg, #8095ff, #5866ff);
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.75);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      color: inherit;
+    }
+
+    body.theme-robo .btn-secondary {
+      border-color: rgba(136, 157, 255, 0.4);
+    }
+
+    .btn-icon {
+      font-size: 1rem;
+    }
+
+    /* RESULT SECTION --------------------------------------------- */
+
+    .result-section {
+      margin-top: 18px;
+      padding-top: 12px;
+      border-top: 1px dashed rgba(120, 135, 150, 0.4);
+      display: none;
+    }
+
+    .result-header-row {
       display: flex;
       justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 8px;
-      font-size: 11px;
-      color: var(--text-soft);
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 8px;
     }
 
-    .app-footer span.label {
+    .result-pill {
+      font-size: 0.78rem;
+      padding: 3px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      background: rgba(255, 255, 255, 0.9);
       opacity: 0.85;
     }
 
-    .app-footer span.value {
-      color: var(--accent-strong);
+    body.theme-robo .result-pill {
+      background: rgba(9, 14, 38, 0.9);
+      border-color: rgba(137, 161, 255, 0.4);
+    }
+
+    .result-score {
+      font-size: 1.5rem;
+      font-weight: 650;
+    }
+
+    .result-label {
+      font-size: 0.86rem;
+      opacity: 0.8;
+    }
+
+    .bar-wrapper {
+      margin-top: 10px;
+      width: 100%;
+      height: 9px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(188, 220, 194, 0.65), rgba(216, 226, 255, 0.85));
+      overflow: hidden;
+    }
+
+    body.theme-robo .bar-wrapper {
+      background: linear-gradient(90deg, rgba(17, 26, 71, 0.9), rgba(31, 46, 116, 0.9));
+    }
+
+    .bar-fill {
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #5fb279, #3d8c5a);
+      transition: width 0.7s cubic-bezier(0.16, 0.75, 0.3, 1), background 0.4s ease;
+    }
+
+    body.theme-robo .bar-fill {
+      background: linear-gradient(90deg, #66f0ff, #8095ff);
+    }
+
+    .result-summary {
+      margin-top: 10px;
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    .result-summary-strong {
+      font-weight: 600;
+    }
+
+    .result-grid {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.2fr);
+      gap: 10px;
+    }
+
+    @media (max-width: 700px) {
+      .result-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .result-box {
+      padding: 10px 11px;
+      border-radius: 14px;
+      font-size: 0.86rem;
+      background: rgba(255, 255, 255, 0.98);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    body.theme-robo .result-box {
+      background: rgba(9, 14, 38, 0.96);
+      border-color: rgba(129, 152, 255, 0.35);
+    }
+
+    .result-box-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      opacity: 0.7;
+      margin-bottom: 4px;
+    }
+
+    .result-box-text {
+      line-height: 1.5;
+    }
+
+    .char-name-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      background: rgba(255, 255, 255, 0.8);
+      margin-bottom: 4px;
+    }
+
+    body.theme-robo .char-name-chip {
+      border-color: rgba(137, 161, 255, 0.5);
+      background: rgba(13, 20, 58, 0.95);
+    }
+
+    .char-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: #5fb279;
+    }
+
+    body.theme-robo .char-dot {
+      background: #7ff1ff;
+    }
+
+    .small-note {
+      margin-top: 10px;
+      font-size: 0.76rem;
+      opacity: 0.65;
     }
   </style>
 </head>
+
 <body class="theme-veritas">
-  <div class="app-shell">
-    <!-- ================= HEADER ================= -->
-    <header class="app-header">
-      <div class="logo-group">
-        <div class="logo-mark"></div>
-        <div class="logo-text-main">
-          <div class="logo-title">
-            <span>ForReal</span><span class="accent">Scan</span>
-          </div>
-          <div class="logo-subtitle">V3 · HUMAN VS AI CONTENT</div>
-        </div>
-        <div class="badge-premium">
-          <span class="badge-dot"></span>
-          Premium
+  <header>
+    <div class="brand">
+      <div class="brand-title">FORREALSCAN</div>
+      <div class="brand-subtitle">Prüfe, wie viel KI in deinen Bildern steckt – in Sekunden.</div>
+    </div>
+    <div class="badge-premium">Premium · Veritas &amp; Robo aktiv</div>
+  </header>
+
+  <main>
+    <!-- LINKES PANEL: VERITAS / ROBO ------------------------------------- -->
+    <section class="card character-panel">
+      <div class="char-bg-ring" aria-hidden="true"></div>
+
+      <div>
+        <div class="char-switch-label">Dynamischer Modus</div>
+        <div class="char-yinyang">
+          &yin-yang; Unter 50&nbsp;% übernimmt <strong>Veritas</strong> (natürlich, beruhigend).
+          Ab 50&nbsp;% führt dich <strong>Robo</strong> (futuristisch, analytisch).
         </div>
       </div>
 
-      <div class="header-actions">
-        <div class="chip">
-          <span class="chip-status-dot"></span>
-          <span>OpenAI API verbunden</span>
-        </div>
-        <button class="ghost-button" type="button">
-          <span class="icon">📘</span>
-          Docs
-        </button>
-      </div>
-    </header>
-
-    <!-- ================= HERO ================= -->
-    <section class="hero" aria-label="ForRealScan Veritas & Robo">
-      <div class="hero-main">
-        <div class="theme-toggle" role="tablist" aria-label="Design-Modus wählen">
-          <button class="theme-btn active" data-theme="veritas" type="button" role="tab" aria-selected="true">
-            <span class="label"><span class="emoji">🌿</span> Veritas</span>
-            <span class="mood">Organisch · Natur · „Human First“</span>
-          </button>
-          <button class="theme-btn" data-theme="robo" type="button" role="tab" aria-selected="false">
-            <span class="label"><span class="emoji">🤖</span> Robo</span>
-            <span class="mood">Metallisch · Futuristisch · Deep Scan</span>
-          </button>
+      <div class="char-avatars">
+        <!-- VERITAS -->
+        <div id="veritas-panel" class="char-avatar active">
+          <div class="char-img-wrap">
+            <!-- Passe den Pfad an deine Veritas-Grafik an -->
+            <img src="/veritas.png" alt="Veritas" class="char-img" />
+          </div>
+          <div>
+            <div class="char-meta-title">Veritas</div>
+            <div class="char-meta-role">Deine Hüterin der echten Momente.</div>
+            <div class="char-meta-note">
+              Aktiv bei niedrigen KI-Scores. Fokus auf Authentizität, Natürlichkeit und feine Details.
+            </div>
+          </div>
         </div>
 
-        <div class="hero-heading">
-          <h1 class="hero-title">
-            KI-Anteil in <span class="highlight">Bildern, Videos & Text</span> präzise sichtbar machen.
-          </h1>
-          <p class="hero-subtitle">
-            ForRealScan vereint Veritas (Natur, Human-Fokus) und Robo (Future-Analyse) zu einem harmonischen Yin & Yang
-            – für ehrliche, transparente Inhalte im Netz.
-          </p>
-        </div>
-
-        <div class="hero-pills">
-          <span class="pill accented">Image Detect · V3 Deep Scan</span>
-          <span class="pill">API v2 Standard · Schnell</span>
-          <span class="pill">Ideal für Creator & Plattformen</span>
+        <!-- ROBO -->
+        <div id="robo-panel" class="char-avatar">
+          <div class="char-img-wrap">
+            <!-- Passe den Pfad an deine Robo-Grafik an -->
+            <img src="/robo.png" alt="Robo" class="char-img" />
+          </div>
+          <div>
+            <div class="char-meta-title">Robo</div>
+            <div class="char-meta-role">Dein KI-Forensik-Spezialist.</div>
+            <div class="char-meta-note">
+              Aktiv bei hohen KI-Scores. Fokus auf Muster, Artefakte und digitale Fingerabdrücke.
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- Yin/Yang Visual -->
-      <aside class="yin-yang-card" aria-label="Veritas & Robo – Yin & Yang">
-        <div class="yin-yang-avatars">
-          <div class="avatar veritas" title="Veritas – Natur">
-            🌱
-          </div>
-          <div class="yin-yang-divider"></div>
-          <div class="avatar robo" title="Robo – Future">
-            ⚙️
-          </div>
+      <div class="char-analysis-bubble">
+        <div class="char-analysis-title">Aktuelle Einschätzung</div>
+        <div id="character-analysis-text" class="char-analysis-text">
+          Lade ein Bild hoch und starte den Scan – Veritas oder Robo erklären dir dann Schritt für Schritt das Ergebnis.
         </div>
-        <div class="yin-yang-text">
-          <div class="label">Veritas · Robo</div>
-          <div class="line">Zwei Welten, ein Ziel: echte, transparente Inhalte.</div>
-        </div>
-      </aside>
+      </div>
     </section>
 
-    <!-- ================= MAIN SCAN GRID ================= -->
-    <main class="main-grid">
-      <!-- LEFT: SCAN CONTROLS -->
-      <section class="panel" aria-label="Scan-Konfiguration">
-        <div class="panel-header">
+    <!-- RECHTES PANEL: UPLOAD + ERGEBNIS --------------------------------- -->
+    <section class="card scan-panel">
+      <div>
+        <h1 class="scan-header-title">Bild hochladen &amp; KI-Anteil prüfen</h1>
+        <p class="scan-header-sub">
+          Wähle ein Bild aus, sieh dir die Vorschau an und erhalte danach eine verständliche Einschätzung,
+          wie viel KI im Spiel ist.
+        </p>
+      </div>
+
+      <!-- Upload-Bereich -->
+      <label for="image-input" class="upload-area">
+        <div class="upload-icon">⬆</div>
+        <div>
+          <div class="upload-text-main">Bild auswählen oder hier klicken</div>
+          <div class="upload-text-sub">
+            Unterstützt JPG, PNG, WebP – deine Datei bleibt nur für die Analyse im System.
+          </div>
+        </div>
+        <input id="image-input" class="upload-input" type="file" accept="image/*" />
+      </label>
+
+      <!-- Bildvorschau -->
+      <div id="preview-wrapper" class="preview-wrapper">
+        <div class="preview-thumb">
+          <img id="image-preview" src="" alt="Bildvorschau" />
+        </div>
+        <div class="preview-info">
+          <div id="preview-name" class="preview-info-name"></div>
+          <div id="preview-meta" class="preview-info-meta"></div>
+        </div>
+      </div>
+
+      <!-- Buttons -->
+      <div class="scan-actions">
+        <button id="scan-button" class="btn btn-primary" type="button">
+          <span class="btn-icon">⚡</span>
+          <span>Scan starten</span>
+        </button>
+        <button id="reset-button" class="btn btn-secondary" type="button">
+          Zurücksetzen
+        </button>
+      </div>
+
+      <!-- Ergebnisbereich -->
+      <div id="result-section" class="result-section">
+        <div class="result-header-row">
           <div>
-            <div class="panel-title">
-              <span class="panel-title-dot"></span>
-              <span>Scan konfigurieren</span>
-            </div>
-            <div class="panel-subtitle">
-              Wähle Modus, Modell & Quelle für deinen ForRealScan.
-            </div>
+            <div class="result-label">Geschätzter KI-Anteil</div>
+            <div id="result-score" class="result-score">– %</div>
           </div>
-          <span class="badge-mini">Jin & Jang balanced</span>
+          <div id="result-pill" class="result-pill">Noch keine Analyse</div>
         </div>
 
-        <form id="scanForm">
-          <!-- Scan Mode -->
-          <div class="field-group">
-            <div class="field-label-row">
-              <span class="field-label">Scan-Modus</span>
-              <div class="mode-toggle" role="radiogroup" aria-label="Scan-Modus wählen">
-                <button class="mode-btn standard active" type="button" data-mode="standard" aria-pressed="true">
-                  <span class="dot"></span>
-                  <span>Standard · v2</span>
-                </button>
-                <button class="mode-btn deep" type="button" data-mode="deep" aria-pressed="false">
-                  <span class="dot"></span>
-                  <span>Deep · v3 + Image</span>
-                </button>
-              </div>
-            </div>
-            <div class="field-hint">
-              Standard = schneller & günstiger · Deep = maximale Genauigkeit inkl. Bildanalyse.
-            </div>
-          </div>
-
-          <!-- Model + URL -->
-          <div class="field-row">
-            <div class="field-group">
-              <div class="field-label-row">
-                <span class="field-label">Analysemodell</span>
-              </div>
-              <div class="select-wrapper">
-                <select id="modelSelect" name="model">
-                  <option value="standard-chat">Standard AI · Chat</option>
-                  <option value="premium-chat">Premium AI · Chat (stärker)</option>
-                  <option value="image-detect">Image Detect only</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="field-group">
-              <div class="field-label-row">
-                <span class="field-label">Quelle (URL, optional)</span>
-              </div>
-              <input
-                type="url"
-                id="sourceUrl"
-                name="sourceUrl"
-                placeholder="https://dein-inhalt.de/video-oder-bild"
-              />
-            </div>
-          </div>
-
-          <!-- Text Input -->
-          <div class="field-group">
-            <div class="field-label-row">
-              <span class="field-label">Optionaler Text</span>
-              <span class="field-hint">z. B. Bildbeschreibung, Captions oder Artikeltext</span>
-            </div>
-            <textarea
-              id="textInput"
-              name="text"
-              placeholder="Füge hier Text ein, der mit dem Bild/Video verknüpft ist oder allein analysiert werden soll."
-            ></textarea>
-          </div>
-
-          <!-- Upload Zone -->
-          <div class="field-group">
-            <div class="field-label-row">
-              <span class="field-label">Datei-Upload</span>
-              <span class="field-hint">Bild / Frame / Screenshot · max. Größe nach API-Limit</span>
-            </div>
-
-            <label class="upload-zone" id="uploadZone">
-              <div class="upload-icon">⬆️</div>
-              <div class="upload-text">
-                <div class="upload-text-main">
-                  Datei hierher ziehen oder <span class="upload-button-inline">Datei wählen</span>
-                </div>
-                <div class="upload-text-sub" id="uploadHint">
-                  Noch keine Datei ausgewählt.
-                </div>
-              </div>
-              <input type="file" id="fileInput" accept="image/*,video/*" />
-            </label>
-          </div>
-
-          <!-- Scan button + Meta -->
-          <div class="scan-footer">
-            <button class="primary-button" type="submit" id="scanButton">
-              <span class="icon">✨</span>
-              <span>Scan starten</span>
-            </button>
-
-            <div class="scan-meta">
-              <span><span class="scan-meta-dot"></span> Veritas = human-fokussiert</span>
-              <span><span class="scan-meta-dot"></span> Robo = Deep-Analyse</span>
-            </div>
-          </div>
-        </form>
-      </section>
-
-      <!-- RIGHT: RESULTS -->
-      <section class="panel" aria-label="Scan-Ergebnis">
-        <div class="panel-header">
-          <div>
-            <div class="panel-title">
-              <span class="panel-title-dot"></span>
-              <span>Aktueller Scan</span>
-            </div>
-            <div class="panel-subtitle" id="resultSubtitle">
-              Noch kein Scan gestartet. Lade ein Bild / Video hoch oder füge Text ein.
-            </div>
-          </div>
-          <span class="badge-mini" id="resultModeBadge">Modus: –</span>
+        <div class="bar-wrapper">
+          <div id="bar-fill" class="bar-fill"></div>
         </div>
 
-        <div class="result-main">
-          <div class="result-summary">
-            <div class="ring" id="probabilityRing" aria-label="Erkannter KI-Anteil">
-              <div class="ring-value" id="aiScoreValue">–%</div>
-            </div>
-            <div class="result-text">
-              <div class="result-label">Einschätzung</div>
-              <div class="result-title" id="resultTitle">Noch keine Bewertung.</div>
-              <div class="result-chip-row" id="resultChips">
-                <span class="result-chip info">Warte auf ersten Scan</span>
-              </div>
+        <div id="result-summary" class="result-summary"></div>
+
+        <div class="result-grid">
+          <div class="result-box">
+            <div class="result-box-title">Analyse in Klartext</div>
+            <div id="analysis-text" class="result-box-text">
+              Hier siehst du gleich eine zusammengefasste Bewertung: Was spricht für echte Inhalte,
+              was deutet eher auf KI hin?
             </div>
           </div>
 
-          <p class="result-body" id="resultBody">
-            Sobald du einen Scan startest, siehst du hier eine kurze, verständliche Einschätzung der KI-Anteile – ausbalanciert
-            zwischen Veritas (humaner Kontext) und Robo (harte Metriken).
-          </p>
-
-          <!-- Accordion: Raw JSON / Debug -->
-          <div class="accordion" id="rawAccordion">
-            <div class="accordion-header" id="rawAccordionHeader">
-              <span>Rohdaten / JSON-Response anzeigen</span>
-              <span class="icon" id="rawAccordionIcon">＋</span>
+          <div class="result-box">
+            <div class="char-name-chip">
+              <span class="char-dot"></span>
+              <span id="analysis-character-name">Veritas oder Robo</span>
             </div>
-            <div class="accordion-body" id="rawJsonBody">
-              {/* JSON-Daten deines letzten API-Calls werden hier eingefügt. */}
-            </div>
-          </div>
-
-          <!-- History -->
-          <div class="history-list" id="historyList">
-            <div class="history-item">
-              <div class="history-left">
-                <span class="history-type">Kein Verlauf</span>
-                <span class="history-meta">Deine letzten Scans erscheinen hier.</span>
-              </div>
-              <span class="history-score">–</span>
+            <div id="analysis-character-speech" class="result-box-text">
+              Sobald dein Scan durch ist, meldet sich hier Veritas oder Robo mit einer persönlichen Einschätzung.
             </div>
           </div>
         </div>
-      </section>
-    </main>
 
-    <!-- ================= FOOTER ================= -->
-    <footer class="app-footer">
-      <span>
-        <span class="label">Aktiver Design-Modus:</span>
-        <span class="value" id="footerTheme">Veritas · Natur</span>
-      </span>
-      <span>
-        <span class="label">Backend:</span>
-        <span class="value">Dein Vercel + OpenAI API v2 / v3 (konfigurierbar)</span>
-      </span>
-    </footer>
-  </div>
+        <div class="small-note">
+          Hinweis: ForRealScan liefert eine probabilistische Einschätzung. Gerade im Grenzbereich (40–60&nbsp;%) lohnt
+          sich ein zweiter Blick mit deinem eigenen Gefühl.
+        </div>
+      </div>
+    </section>
+  </main>
 
   <script>
-    (function () {
-      const body = document.body;
-      const themeButtons = document.querySelectorAll(".theme-btn");
-      const footerTheme = document.getElementById("footerTheme");
+    // Elemente einsammeln
+    const bodyEl = document.body;
+    const imageInput = document.getElementById("image-input");
+    const previewWrapper = document.getElementById("preview-wrapper");
+    const previewImg = document.getElementById("image-preview");
+    const previewName = document.getElementById("preview-name");
+    const previewMeta = document.getElementById("preview-meta");
+    const scanButton = document.getElementById("scan-button");
+    const resetButton = document.getElementById("reset-button");
 
-      const modeButtons = document.querySelectorAll(".mode-btn");
-      const resultModeBadge = document.getElementById("resultModeBadge");
-      const scanForm = document.getElementById("scanForm");
-      const scanButton = document.getElementById("scanButton");
-      const uploadZone = document.getElementById("uploadZone");
-      const fileInput = document.getElementById("fileInput");
-      const uploadHint = document.getElementById("uploadHint");
+    const resultSection = document.getElementById("result-section");
+    const resultScoreEl = document.getElementById("result-score");
+    const resultSummaryEl = document.getElementById("result-summary");
+    const resultPillEl = document.getElementById("result-pill");
+    const barFillEl = document.getElementById("bar-fill");
 
-      const resultSubtitle = document.getElementById("resultSubtitle");
-      const aiScoreValue = document.getElementById("aiScoreValue");
-      const resultTitle = document.getElementById("resultTitle");
-      const resultBody = document.getElementById("resultBody");
-      const resultChips = document.getElementById("resultChips");
-      const probabilityRing = document.getElementById("probabilityRing");
-      const rawAccordion = document.getElementById("rawAccordion");
-      const rawAccordionHeader = document.getElementById("rawAccordionHeader");
-      const rawAccordionIcon = document.getElementById("rawAccordionIcon");
-      const rawJsonBody = document.getElementById("rawJsonBody");
-      const historyList = document.getElementById("historyList");
+    const veritasPanel = document.getElementById("veritas-panel");
+    const roboPanel = document.getElementById("robo-panel");
+    const characterAnalysisText = document.getElementById("character-analysis-text");
 
-      let currentMode = "standard"; // "standard" | "deep"
-      let currentTheme = "veritas";
+    const analysisTextEl = document.getElementById("analysis-text");
+    const analysisCharNameEl = document.getElementById("analysis-character-name");
+    const analysisCharSpeechEl = document.getElementById("analysis-character-speech");
 
-      // ========== Theme switching ==========
-      themeButtons.forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const theme = btn.dataset.theme;
-          if (!theme || theme === currentTheme) return;
+    let currentFile = null;
 
-          currentTheme = theme;
-          themeButtons.forEach((b) => {
-            b.classList.toggle("active", b === btn);
-            b.setAttribute("aria-selected", b === btn ? "true" : "false");
-          });
+    // Hilfsfunktionen ---------------------------------------------------------
 
-          if (theme === "veritas") {
-            body.classList.remove("theme-robo");
-            body.classList.add("theme-veritas");
-            footerTheme.textContent = "Veritas · Natur";
-          } else {
-            body.classList.remove("theme-veritas");
-            body.classList.add("theme-robo");
-            footerTheme.textContent = "Robo · Future";
-          }
-        });
-      });
+    function formatBytes(bytes) {
+      if (!bytes) return "";
+      const units = ["B", "KB", "MB", "GB"];
+      let i = 0;
+      let value = bytes;
+      while (value >= 1024 && i < units.length - 1) {
+        value /= 1024;
+        i++;
+      }
+      return value.toFixed(1) + " " + units[i];
+    }
 
-      // ========== Mode switching ==========
-      function updateMode(mode) {
-        currentMode = mode;
-        modeButtons.forEach((btn) => {
-          const isActive = btn.dataset.mode === mode;
-          btn.classList.toggle("active", isActive);
-          btn.setAttribute("aria-pressed", isActive ? "true" : "false");
-        });
+    /**
+     * WICHTIG für dein Projekt:
+     * Diese Funktion kannst du aus deinem bestehenden API-Code aufrufen,
+     * sobald du einen Score (0–100) für den KI-Anteil berechnet hast.
+     *
+     * Beispiel in deinem Code:
+     *   const score = response.ai_score * 100; // falls 0–1
+     *   handleScanResult(score);
+     */
+    function handleScanResult(score) {
+      const clamped = Math.min(100, Math.max(0, Number(score) || 0));
+      const isRobo = clamped >= 50;
 
-        if (mode === "standard") {
-          resultModeBadge.textContent = "Modus: Standard · v2";
+      // Theme umschalten (Yin/Yang)
+      applyTheme(isRobo ? "robo" : "veritas");
+
+      // Ergebnisbereich anzeigen
+      resultSection.style.display = "block";
+
+      // Prozentanzeige
+      resultScoreEl.textContent = clamped.toFixed(1).replace(".0", "") + " %";
+
+      // Fortschrittsbalken
+      barFillEl.style.width = clamped + "%";
+
+      // Pillentext & Farbe
+      let pillText, summaryIntro;
+      if (clamped < 20) {
+        pillText = "Sehr wahrscheinlich menschlich";
+        summaryIntro = "Der KI-Anteil wirkt extrem gering.";
+      } else if (clamped < 40) {
+        pillText = "Eher menschlich";
+        summaryIntro = "Es gibt einzelne KI-Merkmale, insgesamt dominiert aber Natürlichkeit.";
+      } else if (clamped < 60) {
+        pillText = "Graubereich";
+        summaryIntro = "Menschliche und KI-Merkmale halten sich hier ungefähr die Waage.";
+      } else if (clamped < 80) {
+        pillText = "Deutliche KI-Spuren";
+        summaryIntro = "Viele Merkmale weisen klar auf eine KI-Generierung hin.";
+      } else {
+        pillText = "Stark KI-dominiert";
+        summaryIntro = "Das Bild trägt fast durchgehend die Handschrift eines KI-Modells.";
+      }
+      resultPillEl.textContent = pillText;
+
+      // Zusammenfassungstext
+      resultSummaryEl.innerHTML =
+        "<span class='result-summary-strong'>" +
+        summaryIntro +
+        "</span> Basierend auf dem Analyse-Score von <strong>" +
+        clamped.toFixed(1).replace(".0", "") +
+        " % KI-Anteil</strong> ordnet ForRealScan dieses Bild in die Kategorie <strong>" +
+        pillText +
+        "</strong> ein.";
+
+      // Analyse-Texte generieren
+      const analysis = getAnalysisTexts(clamped);
+      analysisTextEl.textContent = analysis.main;
+      analysisCharNameEl.textContent = analysis.characterName;
+      analysisCharSpeechEl.textContent = analysis.characterSpeech;
+      characterAnalysisText.textContent = analysis.panelSummary;
+    }
+
+    function applyTheme(mode) {
+      if (mode === "robo") {
+        bodyEl.classList.add("theme-robo");
+        bodyEl.classList.remove("theme-veritas");
+        roboPanel.classList.add("active");
+        veritasPanel.classList.remove("active");
+      } else {
+        bodyEl.classList.add("theme-veritas");
+        bodyEl.classList.remove("theme-robo");
+        veritasPanel.classList.add("active");
+        roboPanel.classList.remove("active");
+      }
+    }
+
+    function getAnalysisTexts(score) {
+      const s = score;
+      let characterName, main, speech, panelSummary;
+
+      if (s < 50) {
+        characterName = "Veritas";
+        if (s < 20) {
+          main =
+            "Das Bild wirkt sehr organisch: Lichtführung, Texturen und kleine Unregelmäßigkeiten sprechen klar für reale Aufnahmen oder klassische Bearbeitung.";
+          speech =
+            "Ich sehe hier vor allem natürliche Details: leichte Imperfektionen, organische Kanten und ein glaubwürdiges Rauschen. Für mich fühlt sich das stark nach echten Momenten an.";
+          panelSummary =
+            "Veritas stuft das Bild überwiegend als menschlich erzeugt ein – KI spielt hier, falls überhaupt, nur eine Nebenrolle.";
         } else {
-          resultModeBadge.textContent = "Modus: Deep · v3";
+          main =
+            "Einige feine Merkmale könnten auf KI oder stärkere Bearbeitung hindeuten, insgesamt überwiegen aber natürliche Strukturen und ein realistischer Bildaufbau.";
+          speech =
+            "Es gibt kleine Details, die nach Retusche oder KI-Unterstützung aussehen, aber die Grundstruktur wirkt noch sehr menschlich und realistisch.";
+          panelSummary =
+            "Veritas erkennt einzelne KI-Aspekte, ordnet das Bild aber eher im Bereich „menschlich dominiert“ ein.";
         }
-      }
-
-      modeButtons.forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const mode = btn.dataset.mode;
-          if (mode) updateMode(mode);
-        });
-      });
-
-      // Initial Mode
-      updateMode("standard");
-
-      // ========== Upload ==========
-      uploadZone.addEventListener("click", () => fileInput.click());
-
-      fileInput.addEventListener("change", () => {
-        if (fileInput.files && fileInput.files[0]) {
-          uploadHint.textContent = "Ausgewählt: " + fileInput.files[0].name;
+      } else {
+        characterName = "Robo";
+        if (s < 70) {
+          main =
+            "Die Analyse zeigt mehrere Muster, die typisch für KI-Bildgeneratoren sind – gleichzeitig sind noch Elemente vorhanden, die an klassische Fotografie erinnern.";
+          speech =
+            "Ich sehe auffällige Glättungen, leicht unnatürliche Übergänge und Strukturen, die typisch für Diffusionsmodelle sind. Ganz eindeutig ist es nicht, aber KI mischt hier deutlich mit.";
+          panelSummary =
+            "Robo stuft das Bild als Mischform ein: spürbare KI-Anteile bei gleichzeitig teilweise realistisch wirkenden Bereichen.";
         } else {
-          uploadHint.textContent = "Noch keine Datei ausgewählt.";
-        }
-      });
-
-      uploadZone.addEventListener("dragover", (e) => {
-        e.preventDefault();
-        uploadZone.classList.add("dragover");
-      });
-
-      uploadZone.addEventListener("dragleave", (e) => {
-        e.preventDefault();
-        uploadZone.classList.remove("dragover");
-      });
-
-      uploadZone.addEventListener("drop", (e) => {
-        e.preventDefault();
-        uploadZone.classList.remove("dragover");
-        const file = e.dataTransfer.files && e.dataTransfer.files[0];
-        if (file) {
-          fileInput.files = e.dataTransfer.files;
-          uploadHint.textContent = "Ausgewählt: " + file.name;
-        }
-      });
-
-      // ========== Accordion ==========
-      rawAccordionHeader.addEventListener("click", () => {
-        const isOpen = rawAccordion.classList.toggle("open");
-        rawAccordionIcon.textContent = isOpen ? "－" : "＋";
-      });
-
-      // ========== Helper: Ring & Chips ==========
-      function setRingValue(percent) {
-        const value = Math.max(0, Math.min(100, percent));
-        aiScoreValue.textContent = value + "%";
-        probabilityRing.style.background =
-          "conic-gradient(from 270deg, var(--accent) 0 " +
-          value +
-          "%, rgba(148,163,184,0.55) " +
-          value +
-          "% 100%)";
-      }
-
-      function setChipsForScore(score) {
-        resultChips.innerHTML = "";
-
-        const addChip = (text, type) => {
-          const span = document.createElement("span");
-          span.classList.add("result-chip");
-          if (type) span.classList.add(type);
-          span.textContent = text;
-          resultChips.appendChild(span);
-        };
-
-        if (score < 20) {
-          addChip("Sehr hoher Human-Anteil", "info");
-          addChip("Veritas dominiert", "info");
-        } else if (score < 50) {
-          addChip("Human + leichte KI-Unterstützung", "warning");
-        } else if (score < 80) {
-          addChip("Starke KI-Beteiligung", "warning");
-          addChip("Robo übernimmt mehr Analyse", "warning");
-        } else {
-          addChip("Überwiegend KI-generiert", "danger");
-          addChip("Robo dominiert", "danger");
+          main =
+            "Das Bild trägt eine deutliche KI-Signatur: ungewöhnlich konsistente Texturen, typische Artefakte in Details und ein inszeniert wirkender Gesamtaufbau.";
+          speech =
+            "Die Art, wie Details gerendert sind, die Gleichmäßigkeit der Schärfe und typische Artefakte in Rändern und Strukturen sprechen klar für ein stark KI-generiertes Bild.";
+          panelSummary =
+            "Robo erkennt einen hohen bis sehr hohen KI-Anteil – das Bild dürfte größtenteils oder vollständig von einer KI erzeugt worden sein.";
         }
       }
 
-      function appendHistoryItem(entry) {
-        const item = document.createElement("div");
-        item.classList.add("history-item");
+      return {
+        characterName,
+        main,
+        characterSpeech: speech,
+        panelSummary,
+      };
+    }
 
-        const left = document.createElement("div");
-        left.classList.add("history-left");
+    // Datei-Vorschau ---------------------------------------------------------
 
-        const typeSpan = document.createElement("span");
-        typeSpan.classList.add("history-type");
-        typeSpan.textContent = entry.type;
-
-        const metaSpan = document.createElement("span");
-        metaSpan.classList.add("history-meta");
-        metaSpan.textContent = entry.meta;
-
-        left.appendChild(typeSpan);
-        left.appendChild(metaSpan);
-
-        const scoreSpan = document.createElement("span");
-        scoreSpan.classList.add("history-score");
-        scoreSpan.textContent = entry.score + "%";
-
-        item.appendChild(left);
-        item.appendChild(scoreSpan);
-
-        // erste Dummy-Zeile entfernen, falls vorhanden
-        const firstChild = historyList.firstElementChild;
-        if (firstChild && firstChild.querySelector(".history-type")?.textContent === "Kein Verlauf") {
-          historyList.innerHTML = "";
-        }
-
-        historyList.prepend(item);
+    imageInput.addEventListener("change", (event) => {
+      const file = event.target.files && event.target.files[0];
+      if (!file) {
+        currentFile = null;
+        previewWrapper.style.display = "none";
+        return;
       }
 
-      // ========== Fake Scan (Demo) / API-Platzhalter ==========
-      async function performScan(formData) {
-        // HINWEIS:
-        // Hier kannst du deine echte API einbinden.
-        // Beispiel:
-        //
-        // const response = await fetch("/api/scan", {
-        //   method: "POST",
-        //   body: formData
-        // });
-        // const data = await response.json();
-        // return data;
-        //
-        // Für dieses Template simulieren wir nur eine Antwort:
-
-        return new Promise((resolve) => {
-          const baseScore = currentMode === "deep" ? 65 : 45;
-          const variation = Math.floor(Math.random() * 35) - 15;
-          const score = Math.max(0, Math.min(100, baseScore + variation));
-
-          const fake = {
-            ai_score_percent: score,
-            mode: currentMode,
-            model: formData.get("model"),
-            theme: currentTheme,
-            timestamp: new Date().toISOString(),
-            notes: "Demo-Response – hier kommt später dein echtes API-Ergebnis rein."
-          };
-
-          setTimeout(() => resolve(fake), 750);
-        });
+      if (!file.type.startsWith("image/")) {
+        alert("Bitte wähle eine Bilddatei (JPG, PNG, WebP, ...).");
+        imageInput.value = "";
+        currentFile = null;
+        previewWrapper.style.display = "none";
+        return;
       }
 
-      // ========== Form submit ==========
-      scanForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        if (!scanButton) return;
+      currentFile = file;
 
-        // Daten sammeln
-        const model = document.getElementById("modelSelect").value;
-        const sourceUrl = document.getElementById("sourceUrl").value.trim();
-        const text = document.getElementById("textInput").value.trim();
-        const file = fileInput.files && fileInput.files[0];
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        previewImg.src = e.target.result;
+        previewWrapper.style.display = "flex";
+        previewName.textContent = file.name;
+        previewMeta.textContent = formatBytes(file.size);
+      };
+      reader.readAsDataURL(file);
 
-        const formData = new FormData();
-        formData.append("mode", currentMode);
-        formData.append("model", model);
-        if (sourceUrl) formData.append("sourceUrl", sourceUrl);
-        if (text) formData.append("text", text);
-        if (file) formData.append("file", file);
+      // Alte Ergebnisse ausblenden, wenn neues Bild gewählt wird
+      resultSection.style.display = "none";
+    });
 
-        // UI: Ladezustand
-        const originalLabel = scanButton.innerHTML;
-        scanButton.innerHTML = '<span class="icon">⏳</span><span>Scan läuft…</span>';
-        scanButton.disabled = true;
-        resultSubtitle.textContent = "Scan läuft – Veritas & Robo analysieren gemeinsam deine Eingabe …";
+    // Scan starten (hier simuliert) ----------------------------------------
 
-        try {
-          const result = await performScan(formData);
+    scanButton.addEventListener("click", () => {
+      if (!currentFile) {
+        alert("Bitte wähle zuerst ein Bild aus.");
+        return;
+      }
 
-          const score = Number(result.ai_score_percent || 0);
-          setRingValue(score);
-          setChipsForScore(score);
+      // Button-Status
+      scanButton.disabled = true;
+      scanButton.innerHTML = "<span class='btn-icon'>⏳</span><span>Analysiere ...</span>";
 
-          resultTitle.textContent =
-            score < 20
-              ? "Sehr wahrscheinlich überwiegend menschlich erstellt."
-              : score < 50
-              ? "Wahrscheinlich menschlich mit leichter KI-Unterstützung."
-              : score < 80
-              ? "Deutliche Hinweise auf KI-generierte Anteile."
-              : "Sehr hohe Wahrscheinlichkeit für KI-generierten Inhalt.";
+      /**
+       * Hier würdest du in deinem Projekt den echten API-Call machen.
+       *
+       * Beispiel-Struktur:
+       *
+       *   const formData = new FormData();
+       *   formData.append("file", currentFile);
+       *
+       *   fetch("/api/scan", { method: "POST", body: formData })
+       *     .then(res => res.json())
+       *     .then(data => {
+       *        const score = data.ai_score * 100; // falls 0–1
+       *        handleScanResult(score);
+       *     })
+       *     .catch(err => { ... })
+       *     .finally(() => { ... });
+       *
+       * Für jetzt: einfache Simulation mit einem zufälligen Score.
+       */
 
-          resultBody.textContent =
-            "Dies ist eine Beispielbeschreibung. Hier kannst du aus deiner API-Response eine verständliche Kurz-Zusammenfassung generieren, die erklärt, warum dieser Score zustande kommt – im Stil von Veritas (verständnisvoll, human) und Robo (präzise, technisch).";
-
-          resultSubtitle.textContent =
-            "Analyse abgeschlossen. Nutze das Ergebnis verantwortungsvoll – ForRealScan ist ein Indikator, kein Richter.";
-
-          // Raw JSON anzeigen
-          rawJsonBody.textContent = JSON.stringify(result, null, 2);
-
-          // Verlaufseintrag
-          const type = file
-            ? "File"
-            : sourceUrl
-            ? "URL"
-            : text
-            ? "Text"
-            : "Unbekannt";
-
-          appendHistoryItem({
-            type,
-            meta:
-              (currentMode === "deep" ? "Deep" : "Standard") +
-              " · Modell: " +
-              model +
-              " · " +
-              new Date().toLocaleTimeString(),
-            score
-          });
-        } catch (err) {
+      simulateScanResult()
+        .then((score) => {
+          handleScanResult(score);
+        })
+        .catch((err) => {
           console.error(err);
-          resultSubtitle.textContent =
-            "Fehler bei der Analyse – überprüfe deine API-Verbindung oder versuche es erneut.";
-          resultTitle.textContent = "Fehler beim Scan.";
-          resultBody.textContent =
-            "Es gab ein Problem bei der Kommunikation mit der API. Logge die genaue Fehlermeldung in der Browser-Konsole oder im Backend-Log, um sie zu beheben.";
-          rawJsonBody.textContent = String(err);
-        } finally {
-          scanButton.innerHTML = originalLabel;
+          alert("Beim Scan ist etwas schiefgelaufen. Bitte versuche es erneut.");
+        })
+        .finally(() => {
           scanButton.disabled = false;
-        }
+          scanButton.innerHTML = "<span class='btn-icon'>⚡</span><span>Scan starten</span>";
+        });
+    });
+
+    // Reset --------------------------------------------------------------
+
+    resetButton.addEventListener("click", () => {
+      imageInput.value = "";
+      currentFile = null;
+      previewWrapper.style.display = "none";
+      resultSection.style.display = "none";
+
+      // Standard-Text wiederherstellen
+      analysisTextEl.textContent =
+        "Hier siehst du gleich eine zusammengefasste Bewertung: Was spricht für echte Inhalte, was deutet eher auf KI hin?";
+      analysisCharNameEl.textContent = "Veritas oder Robo";
+      analysisCharSpeechEl.textContent =
+        "Sobald dein Scan durch ist, meldet sich hier Veritas oder Robo mit einer persönlichen Einschätzung.";
+      characterAnalysisText.textContent =
+        "Lade ein Bild hoch und starte den Scan – Veritas oder Robo erklären dir dann Schritt für Schritt das Ergebnis.";
+
+      // Theme auf Veritas zurück
+      applyTheme("veritas");
+    });
+
+    // Simulation eines Scan-Ergebnisses (nur Demo) -------------------------
+
+    function simulateScanResult() {
+      return new Promise((resolve) => {
+        // Kleiner Fake-Delay für „Scan-Gefühl“
+        const delay = 600 + Math.random() * 600;
+        setTimeout(() => {
+          // Optional: leichte Tendenz zur Mitte (realistischer)
+          const base = Math.random();
+          const score = Math.round((base * 0.5 + Math.random() * 0.5) * 100);
+          resolve(score);
+        }, delay);
       });
-    })();
+    }
+
+    // Initial: Veritas aktiv
+    applyTheme("veritas");
   </script>
 </body>
 </html>
