@@ -1,4 +1,4 @@
-// api/analyze_v3.js – Premium mit o3-mini (Vision-Analyse)
+// api/analyze_v3.js – Premium mit o3-mini (Vision-Analyse, ohne 'reasoning'-Parameter)
 export const config = { runtime: "edge" };
 
 export default async function handler(req) {
@@ -58,8 +58,6 @@ export default async function handler(req) {
       },
       body: JSON.stringify({
         model: "o3-mini",
-        // optional, kann entfernt werden falls nicht unterstützt
-        reasoning: { effort: "medium" },
         messages: [
           {
             role: "system",
